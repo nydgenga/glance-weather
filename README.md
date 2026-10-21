@@ -2,7 +2,7 @@
 
 A compact, glanceable weather and astronomy plasmoid for KDE Plasma 6.
 
-**Status:** early prototype v0.1.4; the v0.1.3 layout was tested on Bazzite, with small spacing refinements awaiting confirmation.
+**Status:** early prototype v0.1.5; v0.1.4 was visually verified on Bazzite; v0.1.5 increases supporting font sizes and refines lunar-phase labels pending visual confirmation.
 
 ## Features
 
@@ -15,13 +15,14 @@ A compact, glanceable weather and astronomy plasmoid for KDE Plasma 6.
 - Fahrenheit / Celsius and mph / km/h units
 - Automatic refresh every 30 minutes, manual refresh, and stale-data indicator
 - Native KDE colours and a compact desktop layout (~450 × 320 px)
+- Larger supporting text for improved glanceability; moon phase labels distinguish principal events from waxing/waning intervals
 
 ## Install on Bazzite or another Plasma 6 desktop
 
-Download `glance-weather-0.1.4.plasmoid` from the accompanying artifacts. From a terminal, run:
+Download `glance-weather-0.1.5.plasmoid` from the accompanying artifacts. From a terminal, run:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --install ./glance-weather-0.1.4.plasmoid
+kpackagetool6 --type Plasma/Applet --install ./glance-weather-0.1.5.plasmoid
 ```
 
 Alternatively, if running from this source checkout:
@@ -37,7 +38,7 @@ The package ID is `com.github.nydgenga.glanceweather`; it can coexist with Advan
 To update after later builds:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-0.1.4.plasmoid
+kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-0.1.5.plasmoid
 ```
 
 To uninstall:
@@ -75,7 +76,7 @@ Your desktop and panels will briefly reload. No system reboot is required.
 
 ## Known limitations
 
-- **Ongoing desktop testing is essential.** v0.1.0 successfully loaded and fetched weather on Bazzite. v0.1.3 removed the scrollbar; v0.1.4 reallocates 12px of spare space to the gap below the forecast, pending on-device confirmation.
+- **Ongoing desktop testing is essential.** v0.1.0 successfully loaded and fetched weather on Bazzite. v0.1.3 removed the scrollbar; v0.1.4 reallocated 12px beneath the forecast and was confirmed to look better on Bazzite. v0.1.5 increases small text sizes and corrects the lunar phase rounding; on-device verification is pending.
 - Qt colour-emoji rendering depends on the available system emoji font.
 - Hourly forecast is deliberately a small on-demand popup, not a permanently visible section.
 - The moon-phase icon is one of eight Unicode approximations, not an exact rendering of the illuminated disc.

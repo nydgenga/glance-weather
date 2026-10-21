@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: 0BSD
-// Static budget check for the v0.1.4 compact layout. This does not replace
+// Static budget check for the v0.1.5 compact layout. This does not replace
 // testing QML against Plasma's runtime frame and font metrics.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -10,11 +10,13 @@ assert.match(text, /height: root\.showAstronomy \? 56 : 0/);
 assert.match(text, /spacing: 3\s+\/\/ Header:/);
 assert.match(text, /interactive: contentHeight > height \+ 1/);
 assert.match(text, /QQC2\.ScrollBar\.vertical: QQC2\.ScrollBar/);
+assert.match(text, /smallSize: panel\.width < 390 \? 12 : 13/);
+assert.match(text, /text: i18n\("Rise %1", root\.forecast\.today\.sunrise\); color: panel\.muted; font\.pixelSize: 12/);
 const sections = [21, 64, 18, 1, 85, 1, 56, 22];
 const height = sections.reduce((sum, value) => sum + value, 0) + 7 * 3 + 16;
 assert.ok(height <= 308, `Default nominal body height ${height} exceeds 308`);
 const metadata = JSON.parse(fs.readFileSync('package/metadata.json'));
-assert.equal(metadata.KPlugin.Version, '0.1.4');
+assert.equal(metadata.KPlugin.Version, '0.1.5');
 assert.equal(metadata.KPlugin.Id, 'com.github.nydgenga.glanceweather');
 assert.ok(height >= 300, "Spacing budget unexpectedly reduced");
 console.log(`Nominal compact body height: ${height}px including internal padding`);

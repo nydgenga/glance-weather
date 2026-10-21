@@ -71,7 +71,8 @@ PlasmoidItem {
         Layout.preferredHeight: Math.max(320, bodyColumn.implicitHeight + 28)
         readonly property color foreground: Kirigami.Theme.textColor
         readonly property color muted: Kirigami.Theme.disabledTextColor
-        readonly property int smallSize: panel.width < 390 ? 11 : 12
+        // One step larger supporting text for easier at-a-glance reading.
+        readonly property int smallSize: panel.width < 390 ? 12 : 13
 
         Column {
             anchors.centerIn: parent
@@ -143,7 +144,7 @@ PlasmoidItem {
                         anchors.rightMargin: 6
                         anchors.verticalCenter: parent.verticalCenter
                         color: weatherService.error ? Kirigami.Theme.negativeTextColor : panel.muted
-                        font.pixelSize: 10
+                        font.pixelSize: 11
                         text: weatherService.busy ? i18n("Updating…")
                               : weatherService.error ? i18n("Stale data")
                               : i18n("Updated %1", root.forecast.current.time)
@@ -261,8 +262,8 @@ PlasmoidItem {
                             width: parent.width
                             spacing: 1
                             Text { text: "🌅 " + i18n("Sun"); color: panel.foreground; font.bold: true; font.pixelSize: panel.smallSize }
-                            Text { text: i18n("Rise %1", root.forecast.today.sunrise); color: panel.muted; font.pixelSize: 11 }
-                            Text { text: i18n("Set %1", root.forecast.today.sunset); color: panel.muted; font.pixelSize: 11 }
+                            Text { text: i18n("Rise %1", root.forecast.today.sunrise); color: panel.muted; font.pixelSize: 12 }
+                            Text { text: i18n("Set %1", root.forecast.today.sunset); color: panel.muted; font.pixelSize: 12 }
                         }
                     }
                     Item {
@@ -277,8 +278,8 @@ PlasmoidItem {
                                 text: root.forecast.today.moon.icon + " " + root.forecast.today.moon.label
                                 color: panel.foreground; font.bold: true; font.pixelSize: panel.smallSize
                             }
-                            Text { text: i18n("Rise %1", root.forecast.today.moonrise); color: panel.muted; font.pixelSize: 11 }
-                            Text { text: i18n("Set %1", root.forecast.today.moonset); color: panel.muted; font.pixelSize: 11 }
+                            Text { text: i18n("Rise %1", root.forecast.today.moonrise); color: panel.muted; font.pixelSize: 12 }
+                            Text { text: i18n("Set %1", root.forecast.today.moonset); color: panel.muted; font.pixelSize: 12 }
                         }
                     }
                 }
@@ -292,14 +293,14 @@ PlasmoidItem {
                         anchors.left: parent.left
                         anchors.verticalCenter: parent.verticalCenter
                         text: i18n("Weather by Open-Meteo")
-                        color: panel.muted; font.pixelSize: 10
+                        color: panel.muted; font.pixelSize: 11
                     }
                     QQC2.ToolButton {
                         anchors.right: parent.right
                         anchors.verticalCenter: parent.verticalCenter
                         width: 90; height: 22
                         text: i18n("Hourly ▴")
-                        font.pixelSize: 11
+                        font.pixelSize: 12
                         onClicked: hourlyPopup.open()
                     }
                 }
@@ -324,7 +325,7 @@ PlasmoidItem {
             ColumnLayout {
                 anchors.fill: parent
                 spacing: 4
-                PlasmaComponents.Label { text: i18n("Next six hours · rain chance"); font.bold: true; font.pixelSize: 12 }
+                PlasmaComponents.Label { text: i18n("Next six hours · rain chance"); font.bold: true; font.pixelSize: 13 }
                 Repeater {
                     model: root.forecast.hourly || []
                     delegate: RowLayout {

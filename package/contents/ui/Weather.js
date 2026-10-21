@@ -3,7 +3,7 @@
 
 function condition(code, isDay) {
     var day = isDay !== 0;
-    if (code === 0) return { icon: day ? "☀️" : "🌙", label: "Clear sky" };
+    if (code === 0) return { icon: day ? "☀️" : "🌙", label: day ? "Clear sky" : "Clear night" };
     if (code === 1) return { icon: day ? "🌤️" : "🌙", label: "Mostly clear" };
     if (code === 2) return { icon: day ? "⛅" : "☁️", label: "Partly cloudy" };
     if (code === 3) return { icon: "☁️", label: "Overcast" };
@@ -21,19 +21,22 @@ function moon(phase) {
         return { icon: "🌙", label: "Phase unavailable", illumination: "" };
     }
     var p = ((Number(phase) % 1) + 1) % 1;
-    var phases = [
-        { icon: "🌑", label: "New Moon" },
-        { icon: "🌒", label: "Waxing Crescent" },
-        { icon: "🌓", label: "First Quarter" },
-        { icon: "🌔", label: "Waxing Gibbous" },
-        { icon: "🌕", label: "Full Moon" },
-        { icon: "🌖", label: "Waning Gibbous" },
-        { icon: "🌗", label: "Last Quarter" },
-        { icon: "🌘", label: "Waning Crescent" }
-    ];
-    var index = Math.floor(p * 8 + 0.5) % 8;
-    // Phase is a cycle fraction, not illumination. This is an approximation.
-    return { icon: phases[index].icon, label: phases[index].label,
+    // The principal phases (new, quarters, full) are short-lived events,
+    // not entire one-eighth segments of the lunar month. The previous code
+    // rounded p*8, incorrectly labelling waxing gibbous days as first quarter.
+    // Phase is a fraction of the synodic cycle: 0=new, .25=first quarter,
+    // .5=full, .75=last quarter. Keep narrow ±0.02-cycle windows around
+    // the events and label all intervening days waxing/waning appropriately.
+    var phase;
+    if (p < 0.02 || p >= 0.98) phase = { icon: "🌑", label: "New Moon" };
+    else if (p < 0.23) phase = { icon: "🌒", label: "Waxing Crescent" };
+    else if (p < 0.27) phase = { icon: "🌓", label: "First Quarter" };
+    else if (p < 0.48) phase = { icon: "🌔", label: "Waxing Gibbous" };
+    else if (p < 0.52) phase = { icon: "🌕", label: "Full Moon" };
+    else if (p < 0.73) phase = { icon: "🌖", label: "Waning Gibbous" };
+    else if (p < 0.77) phase = { icon: "🌗", label: "Last Quarter" };
+    else phase = { icon: "🌘", label: "Waning Crescent" };
+    return { icon: phase.icon, label: phase.label,
         illumination: Math.round((1 - Math.cos(2 * Math.PI * p)) * 50) + "%" };
 }
 
