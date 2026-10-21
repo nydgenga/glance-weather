@@ -63,7 +63,7 @@ PlasmoidItem {
     fullRepresentation: Item {
         id: panel
         Layout.minimumWidth: 310
-        // Keep the default compact. Content rows sum to about 277 logical px
+        // Keep the default compact. Content rows sum to about 289 logical px
         // with 16px viewport insets, leaving room for Plasma frame padding.
         // Smaller custom sizes may scroll, but 450×320 should never need to.
         Layout.minimumHeight: Math.min(285, bodyColumn.implicitHeight + 16)
@@ -212,9 +212,11 @@ PlasmoidItem {
                 Rectangle { width: parent.width; height: 1; color: panel.foreground; opacity: 0.18 }
 
                 // Five readable forecast columns, equally sized across the body.
+                // Deliberately reserve 12px below daily lows before the astronomy divider.
+                // This redistributes the previously unused default bottom space.
                 Item {
                     width: parent.width
-                    height: 73
+                    height: 85
                     Row {
                         anchors.fill: parent
                         spacing: 0
@@ -223,7 +225,7 @@ PlasmoidItem {
                             delegate: Item {
                                 required property var modelData
                                 width: Math.floor(bodyColumn.width / root.forecastDays)
-                                height: 73
+                                height: 85
                                 Column {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     spacing: 1

@@ -2,7 +2,7 @@
 
 A compact, glanceable weather and astronomy plasmoid for KDE Plasma 6.
 
-**Status:** early prototype v0.1.3, tested on Bazzite Plasma 6 with layout refinements in progress.
+**Status:** early prototype v0.1.4; the v0.1.3 layout was tested on Bazzite, with small spacing refinements awaiting confirmation.
 
 ## Features
 
@@ -18,10 +18,10 @@ A compact, glanceable weather and astronomy plasmoid for KDE Plasma 6.
 
 ## Install on Bazzite or another Plasma 6 desktop
 
-Download `glance-weather-0.1.3.plasmoid` from the accompanying artifacts. From a terminal, run:
+Download `glance-weather-0.1.4.plasmoid` from the accompanying artifacts. From a terminal, run:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --install ./glance-weather-0.1.3.plasmoid
+kpackagetool6 --type Plasma/Applet --install ./glance-weather-0.1.4.plasmoid
 ```
 
 Alternatively, if running from this source checkout:
@@ -37,7 +37,7 @@ The package ID is `com.github.nydgenga.glanceweather`; it can coexist with Advan
 To update after later builds:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-0.1.3.plasmoid
+kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-0.1.4.plasmoid
 ```
 
 To uninstall:
@@ -58,6 +58,10 @@ Location search: `https://geocoding-api.open-meteo.com/v1/search`
 
 Sunrise, sunset, moonrise, moonset, and fractional lunar phase are returned by the forecast API. Lunar glyphs approximate one of eight phases; the weather model and astronomical data have different accuracy characteristics. Rise/set may be missing on some local dates, shown as `—`.
 
+## Layout notes
+
+The default 450 × 320 layout reserves an 85px forecast area, giving the day-low temperatures about 12px additional breathing room before the Sun/Moon divider. The nominal content height is ~305px including its own padding, so it should fit the default panel without a scrollbar. Exceptionally small sizes retain the scroll fallback.
+
 ## Updating a running widget
 
 After installing an updated package, Plasma may keep the old QML component in memory.
@@ -71,7 +75,7 @@ Your desktop and panels will briefly reload. No system reboot is required.
 
 ## Known limitations
 
-- **Ongoing desktop testing is essential.** v0.1.0 successfully loaded and fetched weather on Bazzite. v0.1.3 improves spacing and needs confirmation on-device.
+- **Ongoing desktop testing is essential.** v0.1.0 successfully loaded and fetched weather on Bazzite. v0.1.3 removed the scrollbar; v0.1.4 reallocates 12px of spare space to the gap below the forecast, pending on-device confirmation.
 - Qt colour-emoji rendering depends on the available system emoji font.
 - Hourly forecast is deliberately a small on-demand popup, not a permanently visible section.
 - The moon-phase icon is one of eight Unicode approximations, not an exact rendering of the illuminated disc.
