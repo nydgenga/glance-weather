@@ -1,0 +1,13 @@
+{
+  "KPlugin": {
+    "Id": "com.github.nydgenga.glanceweather",
+    "Name": "Glance Weather",
+    "Description": "Compact, glanceable weather and astronomy for Plasma 6",
+    "Icon": "weather-clear",
+    "Category": "Environment and Weather",
+    "Version": "0.1.1",
+    "License": "0BSD"
+  },
+  "X-Plasma-API-Minimum-Version": "6.0",
+  "KPackageStructure": "Plasma/Applet"
+}
