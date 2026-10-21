@@ -2,7 +2,7 @@
 
 A compact, glanceable weather and astronomy plasmoid for KDE Plasma 6.
 
-**Status:** experimental v0.1.11. Centers attribution and permanently shows the Sun/Moon section, with no visual changes elsewhere. Awaiting confirmation on Bazzite.
+**Status:** experimental v0.1.12. Removes personal location examples from the public settings field. All weather displays and layout remain unchanged.
 
 ## Features
 
@@ -21,10 +21,10 @@ A compact, glanceable weather and astronomy plasmoid for KDE Plasma 6.
 
 ## Install on Bazzite or another Plasma 6 desktop
 
-Download `glance-weather-0.1.11.plasmoid` from the accompanying artifacts. From a terminal, run:
+Download `glance-weather-0.1.12.plasmoid` from the accompanying artifacts. From a terminal, run:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --install ./glance-weather-0.1.11.plasmoid
+kpackagetool6 --type Plasma/Applet --install ./glance-weather-0.1.12.plasmoid
 ```
 
 Alternatively, if running from this source checkout:
@@ -40,7 +40,7 @@ The package ID is `com.github.nydgenga.glanceweather`; it can coexist with Advan
 To update after later builds:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-0.1.11.plasmoid
+kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-0.1.12.plasmoid
 ```
 
 To uninstall:
@@ -120,3 +120,11 @@ As before, the package requires testing in a real Plasma 6 session. The QML's he
 - The 450 × 416 default size, spacing budget, hourly and seven-day forecasts, font sizes, and units remain unchanged.
 
 In an already-running Plasma session, restart Plasma Shell after upgrading to load the new QML.
+
+## Location privacy (v0.1.12)
+
+Glance Weather ships **without a preset location**. First-run location selection is required; the example search hint is now **Seattle or 98101**, and is not automatically selected. Weather searches and forecasts send the requested place/coordinates to Open-Meteo.
+
+The location shown on an already-installed plasmoid is saved by Plasma in that user’s local settings. Upgrading this package **does not reset those settings**. To use a demonstration city for screenshots, select a different city in the widget’s configuration and apply it *before capturing or publishing*.
+
+Earlier development commits and previously shared screenshots may still show old location information. Editing this release does not erase historical commits, prior artifacts, or screenshots; Git history would need separate review before wider publicity.

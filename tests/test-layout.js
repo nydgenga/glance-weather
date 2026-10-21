@@ -7,7 +7,7 @@ const service = fs.readFileSync('package/contents/ui/WeatherService.qml', 'utf8'
 const settings = fs.readFileSync('package/contents/ui/configGeneral.qml', 'utf8');
 const xml = fs.readFileSync('package/contents/config/main.xml', 'utf8');
 const metadata = JSON.parse(fs.readFileSync('package/metadata.json', 'utf8'));
-assert.equal(metadata.KPlugin.Version, '0.1.11');
+assert.equal(metadata.KPlugin.Version, '0.1.12');
 assert.equal(metadata.KPlugin.Id, 'com.github.nydgenga.glanceweather');
 assert.match(main, /height: 416\b/);
 assert.match(main, /implicitHeight: 416\b/);
@@ -79,3 +79,9 @@ console.log('Responsive spacing: 416px and 444px viewport budgets checked');
 assert.match(settings, /cfg_temperatureUnit/);
 assert.match(settings, /cfg_windUnit/);
 assert.match(settings, /cfg_cityName/);
+
+// Privacy regression: release presets are empty, and the search example is generic.
+assert.match(settings, /e\.g\. Seattle or 98101/);
+assert.match(xml, /<entry name="cityName" type="String"><default><\/default><\/entry>/);
+assert.match(xml, /<entry name="latitude" type="Double"><default>999<\/default><\/entry>/);
+assert.match(xml, /<entry name="longitude" type="Double"><default>999<\/default><\/entry>/);

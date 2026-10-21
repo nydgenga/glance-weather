@@ -32,7 +32,7 @@ Kirigami.FormLayout {
         QQC2.TextField {
             id: searchField
             Layout.fillWidth: true
-            placeholderText: i18n("e.g. Waltham or 02453")
+            placeholderText: i18n("e.g. Seattle or 98101")
             onAccepted: page.searchCities()
         }
         QQC2.Button {
