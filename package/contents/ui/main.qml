@@ -10,16 +10,18 @@ import "Weather.js" as Weather
 PlasmoidItem {
     id: root
     width: 450
-    height: 326
+    height: 320
     implicitWidth: 450
-    implicitHeight: 326
+    implicitHeight: showAstronomy ? 320 : 260
     switchWidth: 320
     switchHeight: 215
     toolTipMainText: i18n("Glance Weather")
+
     readonly property string cityName: Plasmoid.configuration.cityName || ""
     readonly property real latitude: Number(Plasmoid.configuration.latitude)
     readonly property real longitude: Number(Plasmoid.configuration.longitude)
-    readonly property bool validLocation: cityName.length > 0 && latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180
+    readonly property bool validLocation: cityName.length > 0 && latitude >= -90 && latitude <= 90
+                                          && longitude >= -180 && longitude <= 180
     readonly property string temperatureUnit: Plasmoid.configuration.temperatureUnit || "fahrenheit"
     readonly property string windUnit: Plasmoid.configuration.windUnit || "mph"
     readonly property int forecastDays: Math.max(3, Math.min(7, Plasmoid.configuration.forecastDays || 5))
@@ -27,10 +29,13 @@ PlasmoidItem {
     readonly property bool showWind: Plasmoid.configuration.showWind !== false
     readonly property bool showAstronomy: Plasmoid.configuration.showAstronomy !== false
     readonly property var forecast: weatherService.data
+
     WeatherService { id: weatherService }
     Plasmoid.busy: weatherService.busy
+
     function refreshWeather() {
-        if (validLocation) weatherService.refresh(latitude, longitude, temperatureUnit, windUnit, forecastDays)
+        if (validLocation)
+            weatherService.refresh(latitude, longitude, temperatureUnit, windUnit, forecastDays);
     }
     Timer { id: settingsDebounce; interval: 450; onTriggered: root.refreshWeather() }
     Timer { interval: 20000; running: weatherService.busy; onTriggered: weatherService.cancelDueToTimeout() }
@@ -57,166 +62,246 @@ PlasmoidItem {
 
     fullRepresentation: Item {
         id: panel
-        Layout.minimumWidth: 315
-        Layout.minimumHeight: root.showAstronomy ? 300 : 250
+        Layout.minimumWidth: 310
+        // Explicitly budget for the content, not the implicit heights of styled
+        // buttons/labels in a fill-height ColumnLayout (the v0.1.0/0.1.1 bug).
+        Layout.minimumHeight: Math.min(290, bodyColumn.implicitHeight + 16)
         Layout.preferredWidth: 450
-        Layout.preferredHeight: 326
-        clip: true
-        readonly property int smallSize: Math.max(10, Math.min(13, Math.floor(width / 34)))
-        readonly property bool narrow: width < 390
+        Layout.preferredHeight: bodyColumn.implicitHeight + 16
+        readonly property color foreground: Kirigami.Theme.textColor
         readonly property color muted: Kirigami.Theme.disabledTextColor
+        readonly property int smallSize: panel.width < 390 ? 11 : 12
 
-        ColumnLayout {
+        Column {
             anchors.centerIn: parent
-            width: parent.width - 26
-            visible: !root.validLocation || !weatherService.hasData
+            width: Math.max(0, parent.width - 32)
             spacing: 12
-            PlasmaComponents.Label { Layout.alignment: Qt.AlignHCenter; text: "🌤️"; font.pixelSize: 40 }
-            PlasmaComponents.Label {
-                Layout.fillWidth: true
-                text: !root.validLocation ? i18n("Welcome to Glance Weather") : weatherService.busy ? i18n("Fetching the forecast…") : i18n("Weather temporarily unavailable")
-                font.bold: true
-                horizontalAlignment: Text.AlignHCenter
+            visible: !root.validLocation || !weatherService.hasData
+            Text { text: "🌤️"; font.pixelSize: 40; anchors.horizontalCenter: parent.horizontalCenter }
+            Text {
+                width: parent.width
+                text: !root.validLocation ? i18n("Welcome to Glance Weather")
+                     : weatherService.busy ? i18n("Fetching the forecast…") : i18n("Weather temporarily unavailable")
+                color: panel.foreground; font.bold: true; horizontalAlignment: Text.AlignHCenter
             }
-            PlasmaComponents.Label {
-                Layout.fillWidth: true
+            Text {
+                width: parent.width
                 wrapMode: Text.WordWrap
                 horizontalAlignment: Text.AlignHCenter
-                text: !root.validLocation ? i18n("Right-click this widget and select Configure Glance Weather to choose your city.") : weatherService.error || i18n("Waiting for weather data.")
+                color: panel.foreground
+                text: !root.validLocation ? i18n("Right-click and configure Glance Weather to choose your city.")
+                     : weatherService.error || i18n("Waiting for weather data.")
             }
             QQC2.Button {
                 visible: root.validLocation && !weatherService.busy
-                Layout.alignment: Qt.AlignHCenter
+                anchors.horizontalCenter: parent.horizontalCenter
                 text: i18n("Retry")
                 onClicked: root.refreshWeather()
             }
         }
-        ColumnLayout {
+
+        // The body sizes itself from its *actual* visible sections.
+        // Under a manually undersized widget, scrolling is available rather
+        // than silently clipping the Open-Meteo attribution and hourly button.
+        Flickable {
+            id: bodyViewport
             anchors.fill: parent
-            anchors.margins: panel.narrow ? 8 : 10
-            spacing: 4
             visible: root.validLocation && weatherService.hasData
-            RowLayout {
-                Layout.fillWidth: true
+            clip: true
+            contentWidth: width
+            contentHeight: bodyColumn.implicitHeight + 16
+            interactive: contentHeight > height
+            boundsBehavior: Flickable.StopAtBounds
+            QQC2.ScrollBar.vertical: QQC2.ScrollBar { policy: bodyViewport.interactive ? QQC2.ScrollBar.AsNeeded : QQC2.ScrollBar.AlwaysOff }
+
+            Column {
+                id: bodyColumn
+                x: 9
+                y: 8
+                width: Math.max(0, bodyViewport.width - 18)
                 spacing: 4
-                PlasmaComponents.Label {
-                    Layout.fillWidth: true
-                    text: "📍 " + root.cityName
-                    font.bold: true
-                    font.pixelSize: panel.smallSize + 1
-                    elide: Text.ElideRight
-                }
-                PlasmaComponents.Label {
-                    text: weatherService.busy ? i18n("Updating…") : weatherService.error ? i18n("Stale data") : i18n("Updated %1", root.forecast.current.time)
-                    font.pixelSize: 10
-                    color: weatherService.error ? Kirigami.Theme.negativeTextColor : panel.muted
-                }
-                QQC2.ToolButton {
-                    Layout.preferredWidth: 26
-                    Layout.preferredHeight: 21
-                    text: "↻"
-                    enabled: !weatherService.busy
-                    onClicked: root.refreshWeather()
-                }
-            }
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 8
-                Text { text: root.forecast.current.condition.icon; font.pixelSize: panel.narrow ? 36 : 40 }
-                ColumnLayout {
-                    spacing: 0
-                    PlasmaComponents.Label { text: root.forecast.current.temperature; font.pixelSize: panel.narrow ? 33 : 36; font.bold: true }
-                    PlasmaComponents.Label { text: root.forecast.current.condition.label; font.pixelSize: panel.smallSize }
-                }
-                Item { Layout.fillWidth: true }
-                ColumnLayout {
-                    spacing: 2
-                    PlasmaComponents.Label {
-                        Layout.alignment: Qt.AlignRight
-                        text: root.forecast.days.length ? root.forecast.days[0].high + " / " + root.forecast.days[0].low : "—"
+
+                // Header: the long location name yields to the update status.
+                Item {
+                    width: parent.width
+                    height: 23
+                    QQC2.ToolButton {
+                        id: refreshButton
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 27; height: 23
+                        text: "↻"; font.pixelSize: 17
+                        enabled: !weatherService.busy
+                        onClicked: root.refreshWeather()
+                        QQC2.ToolTip.visible: hovered
+                        QQC2.ToolTip.text: i18n("Refresh weather")
+                    }
+                    Text {
+                        id: lastUpdate
+                        anchors.right: refreshButton.left
+                        anchors.rightMargin: 6
+                        anchors.verticalCenter: parent.verticalCenter
+                        color: weatherService.error ? Kirigami.Theme.negativeTextColor : panel.muted
+                        font.pixelSize: 10
+                        text: weatherService.busy ? i18n("Updating…")
+                              : weatherService.error ? i18n("Stale data")
+                              : i18n("Updated %1", root.forecast.current.time)
+                    }
+                    Text {
+                        anchors.left: parent.left
+                        anchors.right: lastUpdate.left
+                        anchors.rightMargin: 8
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "📍 " + root.cityName
+                        color: panel.foreground
+                        font.bold: true
                         font.pixelSize: panel.smallSize + 1
+                        elide: Text.ElideRight
+                    }
+                }
+
+                // Hero: fixed, measured row; no layout-managed phantom height.
+                Item {
+                    width: parent.width
+                    height: 72
+                    Text {
+                        x: 0; y: 8
+                        text: root.forecast.current.condition.icon
+                        font.pixelSize: panel.width < 390 ? 37 : 42
+                    }
+                    Text {
+                        x: 58; y: 1
+                        text: root.forecast.current.temperature
+                        color: panel.foreground
+                        font.pixelSize: panel.width < 390 ? 32 : 37
                         font.bold: true
                     }
-                    PlasmaComponents.Label {
-                        Layout.alignment: Qt.AlignRight
-                        text: i18n("Feels like %1", root.forecast.current.feels)
+                    Text {
+                        x: 58; y: 50
+                        text: root.forecast.current.condition.label
+                        color: panel.foreground
                         font.pixelSize: panel.smallSize
-                        color: panel.muted
+                    }
+                    Text {
+                        anchors.right: parent.right
+                        y: 12
+                        text: root.forecast.days.length ? root.forecast.days[0].high + " / " + root.forecast.days[0].low : "—"
+                        color: panel.foreground; font.bold: true; font.pixelSize: panel.smallSize + 1
+                    }
+                    Text {
+                        anchors.right: parent.right
+                        y: 37
+                        text: i18n("Feels like %1", root.forecast.current.feels)
+                        color: panel.muted; font.pixelSize: panel.smallSize
                     }
                 }
-            }
-            RowLayout {
-                visible: root.showHumidity || root.showWind
-                Layout.fillWidth: true
-                spacing: 12
-                PlasmaComponents.Label { visible: root.showHumidity; text: "💧 " + root.forecast.current.humidity; font.pixelSize: panel.smallSize + 1 }
-                PlasmaComponents.Label { visible: root.showWind; text: "💨 " + Weather.wind(root.forecast.current.wind, root.windUnit); font.pixelSize: panel.smallSize + 1 }
-                Item { Layout.fillWidth: true }
-            }
-            Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: Kirigami.Theme.textColor; opacity: 0.14 }
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 2
-                Repeater {
-                    model: root.forecast.days.slice(0, root.forecastDays)
-                    delegate: ColumnLayout {
-                        required property var modelData
-                        Layout.fillWidth: true
-                        Layout.minimumWidth: 37
-                        spacing: 2
-                        PlasmaComponents.Label { Layout.alignment: Qt.AlignHCenter; text: modelData.day; font.pixelSize: panel.smallSize; color: panel.muted }
-                        Text { Layout.alignment: Qt.AlignHCenter; text: modelData.icon; font.pixelSize: panel.narrow ? 20 : 22 }
-                        PlasmaComponents.Label { Layout.alignment: Qt.AlignHCenter; text: modelData.high; font.pixelSize: panel.smallSize + 1; font.bold: true }
-                        PlasmaComponents.Label { Layout.alignment: Qt.AlignHCenter; text: modelData.low; font.pixelSize: panel.smallSize; color: panel.muted }
+
+                Item {
+                    width: parent.width
+                    height: root.showHumidity || root.showWind ? 20 : 0
+                    visible: height > 0
+                    Row {
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 16
+                        Text { visible: root.showHumidity; text: "💧 " + root.forecast.current.humidity; color: panel.foreground; font.pixelSize: panel.smallSize + 1 }
+                        Text { visible: root.showWind; text: "💨 " + Weather.wind(root.forecast.current.wind, root.windUnit); color: panel.foreground; font.pixelSize: panel.smallSize + 1 }
                     }
                 }
-            }
-            Rectangle {
-                visible: root.showAstronomy
-                Layout.fillWidth: true
-                Layout.preferredHeight: 1
-                color: Kirigami.Theme.textColor
-                opacity: 0.14
-            }
-            RowLayout {
-                visible: root.showAstronomy
-                Layout.fillWidth: true
-                spacing: 10
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    Layout.preferredWidth: 0
-                    spacing: 1
-                    PlasmaComponents.Label { Layout.fillWidth: true; text: "🌅 " + i18n("Sun"); font.bold: true; font.pixelSize: panel.smallSize; elide: Text.ElideRight }
-                    PlasmaComponents.Label {
-                        Layout.fillWidth: true
-                        text: "↑ " + root.forecast.today.sunrise + "  ↓ " + root.forecast.today.sunset
+
+                Rectangle { width: parent.width; height: 1; color: panel.foreground; opacity: 0.18 }
+
+                // Five readable forecast columns, equally sized across the body.
+                Item {
+                    width: parent.width
+                    height: 80
+                    Row {
+                        anchors.fill: parent
+                        spacing: 0
+                        Repeater {
+                            model: root.forecast.days.slice(0, root.forecastDays)
+                            delegate: Item {
+                                required property var modelData
+                                width: Math.floor(bodyColumn.width / root.forecastDays)
+                                height: 80
+                                Column {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    spacing: 3
+                                    Text { anchors.horizontalCenter: parent.horizontalCenter; text: modelData.day; color: panel.muted; font.pixelSize: panel.smallSize }
+                                    Text { anchors.horizontalCenter: parent.horizontalCenter; text: modelData.icon; font.pixelSize: 23 }
+                                    Text { anchors.horizontalCenter: parent.horizontalCenter; text: modelData.high; color: panel.foreground; font.pixelSize: panel.smallSize + 1; font.bold: true }
+                                    Text { anchors.horizontalCenter: parent.horizontalCenter; text: modelData.low; color: panel.muted; font.pixelSize: panel.smallSize }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Rectangle { visible: root.showAstronomy; width: parent.width; height: root.showAstronomy ? 1 : 0; color: panel.foreground; opacity: 0.18 }
+
+                // Sun and Moon are true separate mini-sections: each time is
+                // on its own line. This avoids the continuous text run seen in v0.1.1.
+                Item {
+                    visible: root.showAstronomy
+                    width: parent.width
+                    height: root.showAstronomy ? 56 : 0
+                    Rectangle {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        y: 4
+                        width: 1; height: 48
+                        color: panel.foreground; opacity: 0.18
+                    }
+                    Item {
+                        width: Math.floor(parent.width / 2) - 10
+                        height: parent.height
+                        anchors.left: parent.left
+                        Column {
+                            width: parent.width
+                            spacing: 1
+                            Text { text: "🌅 " + i18n("Sun"); color: panel.foreground; font.bold: true; font.pixelSize: panel.smallSize }
+                            Text { text: i18n("Rise %1", root.forecast.today.sunrise); color: panel.muted; font.pixelSize: 11 }
+                            Text { text: i18n("Set %1", root.forecast.today.sunset); color: panel.muted; font.pixelSize: 11 }
+                        }
+                    }
+                    Item {
+                        width: Math.floor(parent.width / 2) - 10
+                        height: parent.height
+                        anchors.right: parent.right
+                        Column {
+                            width: parent.width
+                            spacing: 1
+                            Text {
+                                width: parent.width; elide: Text.ElideRight
+                                text: root.forecast.today.moon.icon + " " + root.forecast.today.moon.label
+                                color: panel.foreground; font.bold: true; font.pixelSize: panel.smallSize
+                            }
+                            Text { text: i18n("Rise %1", root.forecast.today.moonrise); color: panel.muted; font.pixelSize: 11 }
+                            Text { text: i18n("Set %1", root.forecast.today.moonset); color: panel.muted; font.pixelSize: 11 }
+                        }
+                    }
+                }
+
+                // Footer always follows astronomy; no fill-height spacer.
+                Item {
+                    width: parent.width
+                    height: 23
+                    Text {
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: i18n("Weather by Open-Meteo")
+                        color: panel.muted; font.pixelSize: 10
+                    }
+                    QQC2.ToolButton {
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 90; height: 23
+                        text: i18n("Hourly ▴")
                         font.pixelSize: 11
-                        color: panel.muted
-                        elide: Text.ElideRight
+                        onClicked: hourlyPopup.open()
                     }
                 }
-                Rectangle { Layout.preferredWidth: 1; Layout.fillHeight: true; Layout.topMargin: 2; Layout.bottomMargin: 2; color: Kirigami.Theme.textColor; opacity: 0.14 }
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    Layout.preferredWidth: 0
-                    spacing: 1
-                    PlasmaComponents.Label { Layout.fillWidth: true; text: root.forecast.today.moon.icon + " " + root.forecast.today.moon.label; font.bold: true; font.pixelSize: panel.smallSize; elide: Text.ElideRight }
-                    PlasmaComponents.Label {
-                        Layout.fillWidth: true
-                        text: "↑ " + root.forecast.today.moonrise + "  ↓ " + root.forecast.today.moonset
-                        font.pixelSize: 11
-                        color: panel.muted
-                        elide: Text.ElideRight
-                    }
-                }
-            }
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 4
-                PlasmaComponents.Label { text: i18n("Weather by Open-Meteo"); color: panel.muted; font.pixelSize: 10; Layout.fillWidth: true }
-                QQC2.ToolButton { text: i18n("Hourly ▴"); font.pixelSize: 10; Layout.preferredHeight: 20; onClicked: hourlyPopup.open() }
             }
         }
+
         QQC2.Popup {
             id: hourlyPopup
             parent: panel
@@ -226,7 +311,12 @@ PlasmoidItem {
             height: Math.min(280, 56 + root.forecast.hourly.length * 31)
             padding: 10
             closePolicy: QQC2.Popup.CloseOnEscape | QQC2.Popup.CloseOnPressOutside
-            background: Rectangle { color: Kirigami.Theme.backgroundColor; border.color: Kirigami.Theme.textColor; border.width: 1; radius: 8 }
+            background: Rectangle {
+                color: Kirigami.Theme.backgroundColor
+                border.color: Kirigami.Theme.textColor
+                border.width: 1
+                radius: 8
+            }
             ColumnLayout {
                 anchors.fill: parent
                 spacing: 4
