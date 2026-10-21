@@ -2,6 +2,8 @@
 
 A compact desktop weather and astronomy widget for **KDE Plasma 6**, designed to show what matters without opening extra panels.
 
+![Glance Weather showing the current weather, six-hour outlook, seven-day forecast, and Sun/Moon times for Dallas, Texas](screenshots/glance-weather.png)
+
 **Release status:** 1.0.0-rc.1 — candidate for the first public release. The layout was tested on Bazzite with Plasma 6; this release candidate still requires a final installation and upgrade check before tagging 1.0.0.
 
 ## Features
