@@ -13,9 +13,9 @@ PlasmoidItem {
     // A stable desktop layout replaces the old configuration-dependent geometry.
     // Existing desktop placements retain their saved dimensions in Plasma,
     // so they may need one manual resize after this update.
-    height: 416
+    height: 444
     implicitWidth: 450
-    implicitHeight: 416
+    implicitHeight: 444
     switchWidth: 320
     switchHeight: 215
     toolTipMainText: i18n("Glance Weather")
@@ -62,11 +62,11 @@ PlasmoidItem {
     fullRepresentation: Item {
         id: panel
         Layout.minimumWidth: 310
-        // 450×416 is the intended desktop size. If the user manually chooses
-        // a smaller frame, retain the scroll fallback rather than clipping.
-        Layout.minimumHeight: 390
+        // The taller hero and roomier hourly strip fit at 450×444.
+        // Existing Plasma desktop instances can retain their saved dimensions.
+        Layout.minimumHeight: 420
         Layout.preferredWidth: 450
-        Layout.preferredHeight: 416
+        Layout.preferredHeight: 444
         readonly property color foreground: Kirigami.Theme.textColor
         readonly property color muted: Kirigami.Theme.disabledTextColor
         // One step larger supporting text for easier at-a-glance reading.
@@ -160,50 +160,59 @@ PlasmoidItem {
                     }
                 }
 
-                // Hero: constrained to content, not an unnecessarily tall reserved row.
+                // Primary weather on the left, supporting readings on the right.
+                // Keeping humidity and wind below the daily high/low frees a
+                // complete row above the hourly forecast and balances the hero.
                 Item {
                     width: parent.width
-                    height: 64
+                    height: 94
                     Text {
-                        x: 0; y: 4
+                        x: 0; y: 8
                         text: root.forecast.current.condition.icon
-                        font.pixelSize: panel.width < 390 ? 36 : 40
+                        font.pixelSize: panel.width < 390 ? 43 : 52
                     }
                     Text {
-                        x: 58; y: 1
+                        x: 60; y: 0
                         text: root.forecast.current.temperature
                         color: panel.foreground
-                        font.pixelSize: panel.width < 390 ? 32 : 37
+                        font.pixelSize: panel.width < 390 ? 40 : 50
                         font.bold: true
                     }
                     Text {
-                        x: 58; y: 46
+                        x: 61; y: 67
                         text: root.forecast.current.condition.label
                         color: panel.foreground
                         font.pixelSize: panel.smallSize
                     }
+                    // All four right-side values share the same right edge.
                     Text {
                         anchors.right: parent.right
-                        y: 7
+                        y: 2
                         text: root.forecast.days.length ? root.forecast.days[0].high + " / " + root.forecast.days[0].low : "—"
-                        color: panel.foreground; font.bold: true; font.pixelSize: 18
+                        color: panel.foreground
+                        font.bold: true
+                        font.pixelSize: 18
                     }
                     Text {
                         anchors.right: parent.right
-                        y: 35
+                        y: 29
                         text: i18n("Feels like %1", root.forecast.current.feels)
-                        color: panel.muted; font.pixelSize: panel.smallSize
+                        color: panel.muted
+                        font.pixelSize: panel.smallSize
                     }
-                }
-
-                Item {
-                    width: parent.width
-                    height: 18
-                    Row {
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: 16
-                        Text { text: "💧 " + root.forecast.current.humidity; color: panel.foreground; font.pixelSize: panel.smallSize + 1 }
-                        Text { text: "💨 " + Weather.wind(root.forecast.current.wind, root.windUnit); color: panel.foreground; font.pixelSize: panel.smallSize + 1 }
+                    Text {
+                        anchors.right: parent.right
+                        y: 51
+                        text: "💧 " + root.forecast.current.humidity
+                        color: panel.foreground
+                        font.pixelSize: panel.smallSize + 1
+                    }
+                    Text {
+                        anchors.right: parent.right
+                        y: 73
+                        text: "💨 " + Weather.wind(root.forecast.current.wind, root.windUnit)
+                        color: panel.foreground
+                        font.pixelSize: panel.smallSize + 1
                     }
                 }
 
@@ -214,7 +223,7 @@ PlasmoidItem {
                 // provider's precipitation *probability*, not an amount.
                 Item {
                     width: parent.width
-                    height: 88
+                    height: 106
                     Text {
                         x: 0; y: 0
                         text: i18n("Next six hours")
@@ -223,32 +232,32 @@ PlasmoidItem {
                         font.bold: true
                     }
                     Row {
-                        x: 0; y: 18
+                        x: 0; y: 19
                         width: parent.width
-                        height: 70
+                        height: 87
                         spacing: 0
                         Repeater {
                             model: root.forecast.hourly || []
                             delegate: Item {
                                 required property var modelData
                                 width: Math.floor(bodyColumn.width / 6)
-                                height: 70
+                                height: 87
                                 Text {
                                     anchors.horizontalCenter: parent.horizontalCenter
-                                    y: 0
+                                    y: 1
                                     text: modelData.shortTime
                                     color: panel.muted
                                     font.pixelSize: 12
                                 }
                                 Text {
                                     anchors.horizontalCenter: parent.horizontalCenter
-                                    y: 15
+                                    y: 22
                                     text: modelData.icon
-                                    font.pixelSize: 19
+                                    font.pixelSize: 21
                                 }
                                 Text {
                                     anchors.horizontalCenter: parent.horizontalCenter
-                                    y: 36
+                                    y: 48
                                     text: modelData.temperature
                                     color: panel.foreground
                                     font.pixelSize: 14
@@ -256,7 +265,7 @@ PlasmoidItem {
                                 }
                                 Text {
                                     anchors.horizontalCenter: parent.horizontalCenter
-                                    y: 54
+                                    y: 71
                                     text: modelData.rain === "—" ? "" : "💧" + modelData.rain
                                     color: panel.muted
                                     font.pixelSize: 11
