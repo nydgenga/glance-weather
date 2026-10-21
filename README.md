@@ -93,6 +93,6 @@ The packaging script produces deterministic `.plasmoid` and source `.zip` archiv
 
 ## License and credits
 
-Glance Weather source is released under the [Zero-Clause BSD license (0BSD)](LICENSE). The Open-Meteo weather data is separately licensed and attributed as noted above. No code from Advanced Weather Widget was copied.
+Glance Weather source is released under the [Zero-Clause BSD license (0BSD)](LICENSE). The Open-Meteo weather data is separately licensed and attributed as noted above.
 
 The widget was designed under the direction of its project maintainer, with code-development assistance from OpenAI's ChatGPT. This does not imply the maintainer personally authored every line.
