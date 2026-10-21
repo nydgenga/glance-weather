@@ -2,7 +2,7 @@
 
 A compact, glanceable weather and astronomy plasmoid for KDE Plasma 6.
 
-**Status:** experimental v0.1.12. Removes personal location examples from the public settings field. All weather displays and layout remain unchanged.
+**Status:** experimental v0.1.13. Corrects noon-based Moon-phase timing and strengthens alignment of variable-width forecast symbols and temperatures. Awaiting Plasma visual confirmation.
 
 ## Features
 
@@ -21,10 +21,10 @@ A compact, glanceable weather and astronomy plasmoid for KDE Plasma 6.
 
 ## Install on Bazzite or another Plasma 6 desktop
 
-Download `glance-weather-0.1.12.plasmoid` from the accompanying artifacts. From a terminal, run:
+Download `glance-weather-0.1.13.plasmoid` from the accompanying artifacts. From a terminal, run:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --install ./glance-weather-0.1.12.plasmoid
+kpackagetool6 --type Plasma/Applet --install ./glance-weather-0.1.13.plasmoid
 ```
 
 Alternatively, if running from this source checkout:
@@ -40,7 +40,7 @@ The package ID is `com.github.nydgenga.glanceweather`; it can coexist with Advan
 To update after later builds:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-0.1.12.plasmoid
+kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-0.1.13.plasmoid
 ```
 
 To uninstall:
@@ -128,3 +128,27 @@ Glance Weather ships **without a preset location**. First-run location selection
 The location shown on an already-installed plasmoid is saved by Plasma in that user’s local settings. Upgrading this package **does not reset those settings**. To use a demonstration city for screenshots, select a different city in the widget’s configuration and apply it *before capturing or publishing*.
 
 Earlier development commits and previously shared screenshots may still show old location information. Editing this release does not erase historical commits, prior artifacts, or screenshots; Git history would need separate review before wider publicity.
+
+## v0.1.13: Lunar timing and weather-symbol resilience
+
+### Moon-phase timing
+
+Open-Meteo's `daily.moon_phase` calculation is sampled at **local noon** (not midnight). Glance Weather estimates the current phase fraction using today's and tomorrow's noon values. Between noon and midnight it interpolates forward; between midnight and noon it extrapolates backward by no more than twelve hours using the same daily step. The code handles new-moon wraparound, rejects implausible jumps, and falls back to the available noon sample if a neighboring value is missing. The phase is an approximate **eight-stage label**, not a determination of the exact instant of full/new moon or quarter.
+
+Source: [Open-Meteo lunar calculation implementation](https://github.com/open-meteo/open-meteo/blob/main/Sources/App/Helper/Solar/Moon.swift).
+
+### Glyph alignment
+
+The current temperature retains the emoji-relative gap and now fits within space reserved for the high/low, feels-like, humidity, and wind readings. Hourly and daily forecast columns clip unusually wide glyphs rather than letting them overlap neighbors. Hourly rain probabilities and daily high/low temperatures use horizontal font fitting when values exceed column width. Normal conditions keep the approved typography and layout.
+
+### Tests
+
+Run from the source repository root with Node.js:
+
+`node tests/test-weather.js`
+`node tests/test-stress.js`
+`node tests/test-layout.js`
+
+The synthetic dates in the lunar tests are **phase-fraction fixtures**, not observed astronomical records for those dates. They test conversion math and boundaries; real astronomical accuracy depends on Open-Meteo and requires separate comparisons. The project has no QML rendering environment in CI yet. On-device Plasma visual checks are still necessary, particularly for broad emoji fonts and custom KDE font/scaling settings.
+
+After installing the plasmoid upgrade, restart the Plasma Shell to load the latest QML. The 450 × 416 default layout and public location placeholder have not changed.

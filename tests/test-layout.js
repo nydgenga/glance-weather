@@ -7,7 +7,7 @@ const service = fs.readFileSync('package/contents/ui/WeatherService.qml', 'utf8'
 const settings = fs.readFileSync('package/contents/ui/configGeneral.qml', 'utf8');
 const xml = fs.readFileSync('package/contents/config/main.xml', 'utf8');
 const metadata = JSON.parse(fs.readFileSync('package/metadata.json', 'utf8'));
-assert.equal(metadata.KPlugin.Version, '0.1.12');
+assert.equal(metadata.KPlugin.Version, '0.1.13');
 assert.equal(metadata.KPlugin.Id, 'com.github.nydgenga.glanceweather');
 assert.match(main, /height: 416\b/);
 assert.match(main, /implicitHeight: 416\b/);
@@ -85,3 +85,25 @@ assert.match(settings, /e\.g\. Seattle or 98101/);
 assert.match(xml, /<entry name="cityName" type="String"><default><\/default><\/entry>/);
 assert.match(xml, /<entry name="latitude" type="Double"><default>999<\/default><\/entry>/);
 assert.match(xml, /<entry name="longitude" type="Double"><default>999<\/default><\/entry>/);
+
+// Wide weather glyphs must not collide with today's temperature. The latter
+// fits inside the left-column space, measured against all four right readouts.
+assert.match(main, /x: currentWeatherIcon\.x \+ currentWeatherIcon\.implicitWidth/);
+assert.match(main, /fontSizeMode: Text\.HorizontalFit/);
+assert.match(main, /Math\.min\(highLowReading\.x, feelsLikeReading\.x,/);
+assert.match(main, /humidityReading\.x, windReading\.x\) - x - 8/);
+assert.match(main, /id: highLowReading/);
+assert.match(main, /id: feelsLikeReading/);
+assert.match(main, /id: humidityReading/);
+assert.match(main, /id: windReading/);
+// Fixed-width forecast columns clip unusually wide glyphs instead of allowing
+// them to draw over the next forecast; temperatures fit the column width.
+assert.match(main, /width: Math\.floor\(bodyColumn\.width \/ 6\)/);
+assert.match(main, /width: Math\.floor\(bodyColumn\.width \/ 7\)/);
+assert.equal((main.match(/clip: true/g) || []).length >= 3, true);
+assert.match(main, /minimumPixelSize: 9/); // probability label
+assert.match(main, /minimumPixelSize: 10/); // forecast temperatures
+console.log('Weather glyph and temperature fit guards checked');
+
+// Hourly temperatures also fit into their own bounded columns.
+assert.match(main, /width: parent\.width\s+horizontalAlignment: Text\.AlignHCenter\s+y: 48\s+text: modelData\.temperature/);

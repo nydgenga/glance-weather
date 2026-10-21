@@ -42,18 +42,20 @@ function moon(phase) {
         illumination: Math.round((1 - Math.cos(2 * Math.PI * p)) * 50) + "%" };
 }
 
-// Open-Meteo moon_phase is sampled at each forecast-local midnight.
-// Approximate the fraction for the current local time by interpolating
-// between today's and tomorrow's midnight samples. This improves phase
-// labels near boundaries without bundling an ephemeris library.
-// The API's model remains authoritative: interpolation is not an exact
-// prediction of the moment of a quarter/full/new Moon.
+// Open-Meteo's daily moon_phase is evaluated at forecast-local NOON,
+// not at midnight (see Sources/App/Helper/Solar/Moon.swift in Open-Meteo).
+// Interpolate from today's noon to tomorrow's noon. Before noon, extrapolate
+// back up to 12 hours using the same one-day phase advance; this avoids
+// requesting yesterday's values, and is adequate for an eight-icon display.
+// A phase name describes a short interval, not an exact lunar event time.
 function moonAtLocalTime(today, tomorrow, currentIso, localDate) {
-    if (today === null || today === undefined || !isFinite(Number(today)) ||
-        Number(today) < 0 || Number(today) > 1) return moon(null);
+    if (today === null || today === undefined || today === "" ||
+        !isFinite(Number(today)) || Number(today) < 0 || Number(today) > 1)
+        return moon(null);
     var p0 = Number(today);
-    if (tomorrow === null || tomorrow === undefined || !isFinite(Number(tomorrow)) ||
-        Number(tomorrow) < 0 || Number(tomorrow) > 1) return moon(p0);
+    if (tomorrow === null || tomorrow === undefined || tomorrow === "" ||
+        !isFinite(Number(tomorrow)) || Number(tomorrow) < 0 || Number(tomorrow) > 1)
+        return moon(p0); // Noon snapshot is the best available fallback.
     if (typeof currentIso !== "string" || currentIso.slice(0, 10) !== localDate)
         return moon(p0);
     var match = /^\d{4}-\d\d-\d\dT(\d\d):(\d\d)/.exec(currentIso);
@@ -61,12 +63,15 @@ function moonAtLocalTime(today, tomorrow, currentIso, localDate) {
     var hh = Number(match[1]), mm = Number(match[2]);
     if (hh > 23 || mm > 59) return moon(p0);
     var p1 = Number(tomorrow);
-    // Forward modular difference, including wraparound across new moon.
-    var delta = (p1 - p0 + 1) % 1;
-    // Reject implausibly large jumps from malformed data; use today's value.
+    // A positive modular advance works across new moon, e.g. .98 -> .02.
+    var delta = ((p1 - p0) % 1 + 1) % 1;
+    // The Moon advances roughly 0.034 of a cycle daily. A larger step is
+    // likely malformed data; fail safely by displaying today's noon value.
     if (delta > 0.09) return moon(p0);
-    var dayFraction = (hh * 60 + mm) / 1440;
-    return moon((p0 + delta * dayFraction) % 1);
+    // Samples are at 12:00 and 12:00 the next day. Before 12:00, the
+    // interpolation fraction is negative, yielding a short extrapolation.
+    var fractionFromNoon = (hh * 60 + mm - 720) / 1440;
+    return moon(((p0 + delta * fractionFromNoon) % 1 + 1) % 1);
 }
 
 function clock(iso) {

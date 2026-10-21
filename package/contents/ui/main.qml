@@ -189,6 +189,15 @@ PlasmoidItem {
                         x: currentWeatherIcon.x + currentWeatherIcon.implicitWidth
                            + (panel.width < 390 ? 7 : 11)
                         y: 0
+                        // Prevent extreme temperatures from colliding with the
+                        // right column without shrinking normal-sized text.
+                        width: Math.max(1, Math.min(highLowReading.x, feelsLikeReading.x,
+                            humidityReading.x, windReading.x) - x - 8)
+                        height: 62
+                        fontSizeMode: Text.HorizontalFit
+                        minimumPixelSize: 25
+                        wrapMode: Text.NoWrap
+                        elide: Text.ElideRight
                         text: root.forecast.current.temperature
                         color: panel.foreground
                         font.pixelSize: panel.width < 390 ? 40 : 50
@@ -196,12 +205,16 @@ PlasmoidItem {
                     }
                     Text {
                         x: currentTemperature.x + 1; y: 67
+                        width: Math.max(1, Math.min(highLowReading.x, feelsLikeReading.x,
+                            humidityReading.x, windReading.x) - x - 8)
+                        elide: Text.ElideRight
                         text: root.forecast.current.condition.label
                         color: panel.foreground
                         font.pixelSize: panel.smallSize
                     }
                     // All four right-side values share the same right edge.
                     Text {
+                        id: highLowReading
                         anchors.right: parent.right
                         y: 2
                         text: root.forecast.days.length ? root.forecast.days[0].high + " / " + root.forecast.days[0].low : "—"
@@ -211,6 +224,7 @@ PlasmoidItem {
                     }
                     Text {
                         anchors.right: parent.right
+                        id: feelsLikeReading
                         y: 29
                         text: i18n("Feels like %1", root.forecast.current.feels)
                         color: panel.muted
@@ -218,6 +232,7 @@ PlasmoidItem {
                     }
                     Text {
                         anchors.right: parent.right
+                        id: humidityReading
                         y: 51
                         text: "💧 " + root.forecast.current.humidity
                         color: panel.foreground
@@ -225,6 +240,7 @@ PlasmoidItem {
                     }
                     Text {
                         anchors.right: parent.right
+                        id: windReading
                         y: 71
                         text: "💨 " + Weather.wind(root.forecast.current.wind, root.windUnit)
                         color: panel.foreground
@@ -258,6 +274,9 @@ PlasmoidItem {
                                 required property var modelData
                                 width: Math.floor(bodyColumn.width / 6)
                                 height: 85
+                                // Keep unusual emoji glyph widths and 100% rain
+                                // probabilities within this hour's own column.
+                                clip: true
                                 Text {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     y: 1
@@ -266,25 +285,34 @@ PlasmoidItem {
                                     font.pixelSize: 12
                                 }
                                 Text {
-                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    width: parent.width
+                                    horizontalAlignment: Text.AlignHCenter
                                     y: 22
                                     text: modelData.icon
                                     font.pixelSize: 21
+                                    wrapMode: Text.NoWrap
                                 }
                                 Text {
-                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    width: parent.width
+                                    horizontalAlignment: Text.AlignHCenter
                                     y: 48
                                     text: modelData.temperature
                                     color: panel.foreground
                                     font.pixelSize: 14
+                                    fontSizeMode: Text.HorizontalFit
+                                    minimumPixelSize: 10
                                     font.bold: true
                                 }
                                 Text {
-                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    width: parent.width
+                                    horizontalAlignment: Text.AlignHCenter
                                     y: 71
                                     text: modelData.rain === "—" ? "" : "💧" + modelData.rain
                                     color: panel.muted
                                     font.pixelSize: 11
+                                    fontSizeMode: Text.HorizontalFit
+                                    minimumPixelSize: 9
+                                    wrapMode: Text.NoWrap
                                 }
                             }
                         }
@@ -308,13 +336,17 @@ PlasmoidItem {
                                 required property var modelData
                                 width: Math.floor(bodyColumn.width / 7)
                                 height: 85
+                                // Avoid overlap into neighboring days if an
+                                // emoji font draws a particularly wide glyph.
+                                clip: true
                                 Column {
                                     anchors.horizontalCenter: parent.horizontalCenter
+                                    width: parent.width
                                     spacing: 1
                                     Text { anchors.horizontalCenter: parent.horizontalCenter; text: modelData.day; color: panel.muted; font.pixelSize: panel.smallSize }
-                                    Text { anchors.horizontalCenter: parent.horizontalCenter; text: modelData.icon; font.pixelSize: 22 }
-                                    Text { anchors.horizontalCenter: parent.horizontalCenter; text: modelData.high; color: panel.foreground; font.pixelSize: panel.smallSize + 1; font.bold: true }
-                                    Text { anchors.horizontalCenter: parent.horizontalCenter; text: modelData.low; color: panel.muted; font.pixelSize: panel.smallSize }
+                                    Text { width: parent.width; horizontalAlignment: Text.AlignHCenter; text: modelData.icon; font.pixelSize: 22; wrapMode: Text.NoWrap }
+                                    Text { width: parent.width; horizontalAlignment: Text.AlignHCenter; text: modelData.high; color: panel.foreground; font.pixelSize: panel.smallSize + 1; fontSizeMode: Text.HorizontalFit; minimumPixelSize: 10; font.bold: true }
+                                    Text { width: parent.width; horizontalAlignment: Text.AlignHCenter; text: modelData.low; color: panel.muted; font.pixelSize: panel.smallSize; fontSizeMode: Text.HorizontalFit; minimumPixelSize: 10 }
                                 }
                             }
                         }

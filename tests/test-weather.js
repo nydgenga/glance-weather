@@ -26,17 +26,34 @@ assert.strictEqual(weather.moon(0.12).label, 'Waxing Crescent');
 assert.strictEqual(weather.moon(0.37).label, 'Waxing Gibbous');
 assert.strictEqual(weather.moon(0.62).label, 'Waning Gibbous');
 assert.strictEqual(weather.moon(0.87).label, 'Waning Crescent');
-assert.strictEqual(weather.moonAtLocalTime(0.22, 0.26, '2026-10-18T12:00', '2026-10-18').label, 'First Quarter');
+assert.strictEqual(weather.moonAtLocalTime(0.22, 0.26, '2026-10-18T12:00', '2026-10-18').label, 'Waxing Crescent');
+assert.strictEqual(weather.moonAtLocalTime(0.22, 0.265, '2026-10-18T18:00', '2026-10-18').label, 'First Quarter');
 assert.strictEqual(weather.moonAtLocalTime(0.22, 0.26, '2026-10-18T00:00', '2026-10-18').label, 'Waxing Crescent');
 assert.strictEqual(weather.moonAtLocalTime(0.22, 0.26, '2026-10-18T23:59', '2026-10-18').label, 'First Quarter');
 assert.strictEqual(weather.moonAtLocalTime(0.47, 0.51, '2026-10-26T19:00', '2026-10-26').label, 'Full Moon');
 assert.strictEqual(weather.moonAtLocalTime(0.72, 0.76, '2026-11-01T20:00', '2026-11-01').label, 'Last Quarter');
-assert.strictEqual(weather.moonAtLocalTime(0.96, 0.01, '2026-11-09T15:00', '2026-11-09').label, 'New Moon');
+assert.strictEqual(weather.moonAtLocalTime(0.96, 0.01, '2026-11-09T15:00', '2026-11-09').label, 'Waning Crescent');
+assert.strictEqual(weather.moonAtLocalTime(0.96, 0.01, '2026-11-09T23:59', '2026-11-09').label, 'New Moon');
 assert.strictEqual(weather.moonAtLocalTime(0.99, 0.02, '2026-11-09T23:59', '2026-11-09').label, 'New Moon');
 assert.strictEqual(weather.moonAtLocalTime(0.30, 0.34, '2026-10-20T21:00', '2026-10-20').label, 'Waxing Gibbous');
 assert.strictEqual(weather.moonAtLocalTime(0.33, null, '2026-10-20T21:00', '2026-10-20').label, 'Waxing Gibbous');
 assert.strictEqual(weather.moonAtLocalTime(0.33, 0.37, '2026-10-21T21:00', '2026-10-20').label, 'Waxing Gibbous');
 assert.strictEqual(weather.moonAtLocalTime(0.33, 0.99, '2026-10-20T21:00', '2026-10-20').label, 'Waxing Gibbous');
+// Guard the noon-vs-midnight regression. 0.245 is the value at local noon;
+// at 00:00 the Moon is still in the preceding phase.
+assert.strictEqual(weather.moonAtLocalTime(0.245, 0.285, '2035-03-20T00:00', '2035-03-20').label, 'Waxing Crescent');
+assert.strictEqual(weather.moonAtLocalTime(0.245, 0.285, '2035-03-20T12:00', '2035-03-20').label, 'First Quarter');
+assert.strictEqual(weather.moonAtLocalTime(0.245, 0.285, '2035-03-20T23:59', '2035-03-20').label, 'First Quarter');
+assert.strictEqual(weather.moonAtLocalTime(0.48, 0.52, '2047-04-09T00:00', '2047-04-09').label, 'Waxing Gibbous');
+assert.strictEqual(weather.moonAtLocalTime(0.48, 0.52, '2047-04-09T12:00', '2047-04-09').label, 'Full Moon');
+assert.strictEqual(weather.moonAtLocalTime(0.98, 0.02, '2032-06-15T00:00', '2032-06-15').label, 'Waning Crescent');
+assert.strictEqual(weather.moonAtLocalTime(0.98, 0.02, '2032-06-15T12:00', '2032-06-15').label, 'New Moon');
+assert.strictEqual(weather.moonAtLocalTime(0.98, 0.02, '2032-06-15T23:59', '2032-06-15').label, 'New Moon');
+assert.strictEqual(weather.moonAtLocalTime(0.25, '', '2035-03-20T09:00', '2035-03-20').label, 'First Quarter');
+assert.strictEqual(weather.moonAtLocalTime('', 0.28, '2035-03-20T09:00', '2035-03-20').label, 'Phase unavailable');
+assert.strictEqual(weather.moonAtLocalTime(0.98, 0.13, '2035-03-20T09:00', '2035-03-20').label, 'New Moon');
+assert.strictEqual(weather.moonAtLocalTime(0.25, 0.29, '2035-03-21T09:00', '2035-03-20').label, 'First Quarter');
+
 for (let p = 0; p < 1; p += 0.001) {
     const phase = weather.moon(p);
     assert.ok(phase.icon.length > 0 && phase.label.length > 0);
