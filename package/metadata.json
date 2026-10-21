@@ -5,7 +5,7 @@
     "Description": "Compact, glanceable weather and astronomy for Plasma 6",
     "Icon": "weather-clear",
     "Category": "Environment and Weather",
-    "Version": "1.0.0-rc.1",
+    "Version": "1.0.0",
     "License": "0BSD"
   },
   "X-Plasma-API-Minimum-Version": "6.0",

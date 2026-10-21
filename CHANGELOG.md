@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0-rc.1] — Release candidate
+## [1.0.0] — Initial public release
 
 - Feature-complete design: current conditions, six-hour outlook, seven-day forecast, permanently visible humidity/wind and Sun/Moon information.
 - Corrected lunar-phase interpolation to reflect Open-Meteo's **local-noon** sampling, including cycle wraparound and missing-data fallbacks.

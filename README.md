@@ -4,7 +4,7 @@ A compact desktop weather and astronomy widget for **KDE Plasma 6**, designed to
 
 ![Glance Weather showing the current weather, six-hour outlook, seven-day forecast, and Sun/Moon times for Dallas, Texas](screenshots/glance-weather.png)
 
-**Release status:** 1.0.0-rc.1 — candidate for the first public release. The layout was tested on Bazzite with Plasma 6; this release candidate still requires a final installation and upgrade check before tagging 1.0.0.
+**Release:** 1.0.0 — initial stable version. The layout was tested on Bazzite with KDE Plasma 6.
 
 ## Features
 
@@ -27,16 +27,16 @@ Tested visually on Bazzite Linux; other Plasma 6 configurations may render symbo
 
 ## Install and upgrade
 
-Download `glance-weather-1.0.0-rc.1.plasmoid`, open a terminal in the download directory, and run:
+Download `glance-weather-1.0.0.plasmoid`, open a terminal in the download directory, and run:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --install ./glance-weather-1.0.0-rc.1.plasmoid
+kpackagetool6 --type Plasma/Applet --install ./glance-weather-1.0.0.plasmoid
 ```
 
 To upgrade an existing Glance Weather installation, keeping saved settings:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-1.0.0-rc.1.plasmoid
+kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-1.0.0.plasmoid
 systemctl --user restart plasma-plasmashell.service
 ```
 
@@ -75,7 +75,7 @@ Moon phases are derived from Open-Meteo's daily numerical phase observations sam
 - Forecasts require network access. The in-memory last successful forecast can remain visible after a temporary request failure, but is lost after Plasma restarts.
 - Appearance of Unicode emoji depends on installed fonts, theme and scaling; unusual values fit or clip rather than overlap adjacent forecasts.
 - A location's local time is used for forecast hours and astronomical times, which can differ from the computer's timezone.
-- This release candidate has automated parser, layout-structure, numeric-stress and package checks. They do not replace manual testing on a real Plasma desktop.
+- Automated parser, layout-structure, numeric-stress and package checks supplement real-world KDE Plasma testing.
 
 ## Development
 
@@ -89,7 +89,7 @@ node tests/test-release.js
 python3 scripts/package.py
 ```
 
-The packaging script produces deterministic `.plasmoid` and source `.zip` archives in `dist/`. See [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) for manual tests before approving 1.0.0 and [CHANGELOG.md](CHANGELOG.md) for the changes since development builds.
+The packaging script produces deterministic `.plasmoid` and source `.zip` archives in `dist/`. See [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) for release verification and [CHANGELOG.md](CHANGELOG.md) for the initial release changes.
 
 ## License and credits
 

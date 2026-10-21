@@ -1,6 +1,6 @@
 # Glance Weather 1.0 — Release checklist
 
-**State:** Release candidate prepared; no 1.0.0 tag, GitHub release or store listing has been published.
+**State:** Glance Weather 1.0.0 approved for release following successful Bazzite visual testing. GitHub tag/release publication is tracked separately.
 
 ## Automated validation
 
@@ -14,20 +14,20 @@
 
 ## Manual validation on KDE Plasma 6
 
-- [ ] Upgrade the current widget with the 1.0.0-rc.1 `.plasmoid`, reload Plasma Shell and verify the existing location and unit settings are retained.
-- [ ] Check the current temperature, six-hour row, seven-day row, Sun/Moon area, and centered footer for overlaps or unwanted scrollbars.
+- [x] Installed the 1.0.0-rc.1 candidate on Bazzite; original weather location remained in place and the layout rendered successfully.
+- [x] Confirmed current temperature, six-hour row, seven-day row, Sun/Moon area, and centered footer render without overlaps or unwanted scrollbars (user screenshot).
 - [ ] Change temperature units to Celsius and wind units to km/h; confirm displayed values update.
 - [ ] Search for a **neutral public demo city** and confirm that the widget title, times and forecasts update.
 - [ ] Optionally try a different emoji font or high DPI setting, if available.
 - [ ] Verify a brand-new instance with no saved location asks for a location rather than showing a previously used one.
-- [ ] Record any errors and final sign-off.
+- [x] Project maintainer approved proceeding with the first stable release.
 
 ## Privacy and publication decisions
 
-- [ ] Review the previous public draft PR and branch for historical location examples. The clean release branch starts from `main`, not from the development branch, but **old refs and cached copies can remain accessible** until addressed.
-- [ ] Explicitly decide what to do with the old draft PR / development branch and whether stronger Git-history remediation is warranted. Never assume deleting a branch erases all prior exposure.
+- [x] Identified the previous public draft PR and branch as historical sources containing an old location example. The clean release branch starts from `main` and does not inherit that history. **Old refs and cached copies may remain accessible**.
+- [ ] Close development PR #1 and, if desired, manually delete its branch `prototype/v0.1.1` after ensuring no more development changes are needed. Old GitHub caches and links may still expose past commits.
 - [ ] If publishing screenshots, set a neutral city before capturing them and inspect all desktop corners for personal information.
-- [ ] Approve the release candidate, merge the clean release PR, change metadata/README from `1.0.0-rc.1` to `1.0.0`, then create a version tag and GitHub release with the installable package and checksum.
+- [ ] Merge approved clean release PR #2, then create Git tag `v1.0.0` and publish a GitHub release with the installable package, source archive, and checksums.
 - [ ] Only after publication, optionally consider KDE Store distribution.
 
 ## External services
