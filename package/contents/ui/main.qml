@@ -13,9 +13,9 @@ PlasmoidItem {
     // A stable desktop layout replaces the old configuration-dependent geometry.
     // Existing desktop placements retain their saved dimensions in Plasma,
     // so they may need one manual resize after this update.
-    height: 444
+    height: 416
     implicitWidth: 450
-    implicitHeight: 444
+    implicitHeight: 416
     switchWidth: 320
     switchHeight: 215
     toolTipMainText: i18n("Glance Weather")
@@ -62,11 +62,12 @@ PlasmoidItem {
     fullRepresentation: Item {
         id: panel
         Layout.minimumWidth: 310
-        // The taller hero and roomier hourly strip fit at 450×444.
-        // Existing Plasma desktop instances can retain their saved dimensions.
-        Layout.minimumHeight: 420
+        // Keep the approved typography and columns, but remove unused vertical
+        // allocations so the whole view fits the previously used 450×416 frame.
+        // Plasma may retain an older manually chosen desktop size.
+        Layout.minimumHeight: 400
         Layout.preferredWidth: 450
-        Layout.preferredHeight: 444
+        Layout.preferredHeight: 416
         readonly property color foreground: Kirigami.Theme.textColor
         readonly property color muted: Kirigami.Theme.disabledTextColor
         // One step larger supporting text for easier at-a-glance reading.
@@ -109,7 +110,9 @@ PlasmoidItem {
             visible: root.validLocation && weatherService.hasData
             clip: true
             contentWidth: width
-            contentHeight: bodyColumn.implicitHeight + 16
+            // Account for the real top and bottom insets, not an arbitrary
+            // 16px reserve that can trigger an unnecessary scrollbar.
+            contentHeight: bodyColumn.y + bodyColumn.implicitHeight + 5
             interactive: contentHeight > height + 1
             boundsBehavior: Flickable.StopAtBounds
             QQC2.ScrollBar.vertical: QQC2.ScrollBar { policy: bodyViewport.interactive ? QQC2.ScrollBar.AsNeeded : QQC2.ScrollBar.AlwaysOff }
@@ -117,14 +120,14 @@ PlasmoidItem {
             Column {
                 id: bodyColumn
                 x: 9
-                y: 8
+                y: 5
                 width: Math.max(0, bodyViewport.width - 18)
-                spacing: 3
+                spacing: 2
 
                 // Header: the long location name yields to the update status.
                 Item {
                     width: parent.width
-                    height: 21
+                    height: 20
                     QQC2.ToolButton {
                         id: refreshButton
                         anchors.right: parent.right
@@ -165,7 +168,7 @@ PlasmoidItem {
                 // complete row above the hourly forecast and balances the hero.
                 Item {
                     width: parent.width
-                    height: 94
+                    height: 91
                     Text {
                         x: 0; y: 8
                         text: root.forecast.current.condition.icon
@@ -209,7 +212,7 @@ PlasmoidItem {
                     }
                     Text {
                         anchors.right: parent.right
-                        y: 73
+                        y: 71
                         text: "💨 " + Weather.wind(root.forecast.current.wind, root.windUnit)
                         color: panel.foreground
                         font.pixelSize: panel.smallSize + 1
@@ -223,7 +226,7 @@ PlasmoidItem {
                 // provider's precipitation *probability*, not an amount.
                 Item {
                     width: parent.width
-                    height: 106
+                    height: 102
                     Text {
                         x: 0; y: 0
                         text: i18n("Next six hours")
@@ -232,16 +235,16 @@ PlasmoidItem {
                         font.bold: true
                     }
                     Row {
-                        x: 0; y: 19
+                        x: 0; y: 17
                         width: parent.width
-                        height: 87
+                        height: 85
                         spacing: 0
                         Repeater {
                             model: root.forecast.hourly || []
                             delegate: Item {
                                 required property var modelData
                                 width: Math.floor(bodyColumn.width / 6)
-                                height: 87
+                                height: 85
                                 Text {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     y: 1
@@ -312,11 +315,11 @@ PlasmoidItem {
                 Item {
                     visible: root.showAstronomy
                     width: parent.width
-                    height: root.showAstronomy ? 56 : 0
+                    height: root.showAstronomy ? 52 : 0
                     Rectangle {
                         anchors.horizontalCenter: parent.horizontalCenter
                         y: 4
-                        width: 1; height: 48
+                        width: 1; height: 44
                         color: panel.foreground; opacity: 0.18
                     }
                     Item {
@@ -352,7 +355,7 @@ PlasmoidItem {
                 // Provider attribution; the old hourly popup has moved inline.
                 Item {
                     width: parent.width
-                    height: 22
+                    height: 20
                     Text {
                         anchors.left: parent.left
                         anchors.verticalCenter: parent.verticalCenter
