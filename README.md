@@ -2,7 +2,7 @@
 
 A compact, glanceable weather and astronomy plasmoid for KDE Plasma 6.
 
-**Status:** early prototype v0.1.1, tested on Bazzite Plasma 6 with layout refinements in progress.
+**Status:** early prototype v0.1.2, tested on Bazzite Plasma 6 with layout refinements in progress.
 
 ## Features
 
@@ -14,30 +14,30 @@ A compact, glanceable weather and astronomy plasmoid for KDE Plasma 6.
 - Search for a city or postal code in the settings
 - Fahrenheit / Celsius and mph / km/h units
 - Automatic refresh every 30 minutes, manual refresh, and stale-data indicator
-- Native KDE colours and a compact desktop layout (~450 × 326 px)
+- Native KDE colours and a compact desktop layout (~450 × 320 px)
 
 ## Install on Bazzite or another Plasma 6 desktop
 
-From a source checkout:
+Download `glance-weather-0.1.2.plasmoid` from the accompanying artifacts. From a terminal, run:
+
+```bash
+kpackagetool6 --type Plasma/Applet --install ./glance-weather-0.1.2.plasmoid
+```
+
+Alternatively, if running from this source checkout:
 
 ```bash
 kpackagetool6 --type Plasma/Applet --install ./package
 ```
 
-Alternatively, download the matching .plasmoid build and install it:
-
-```bash
-kpackagetool6 --type Plasma/Applet --install ./glance-weather-0.1.1.plasmoid
-```
-
-Then right-click the desktop → **Add Widgets** → search for **Glance Weather** and add it. Right-click Glance Weather → **Configure Glance Weather**. Search for a city or postal code, click one of the matches, then **Apply** or **OK**. No default location is baked into the project.
+Then right-click your desktop → **Add Widgets** → search for **Glance Weather** and add it. Right-click Glance Weather → **Configure Glance Weather**. Search for a city or postal code, click one of the matches, then **Apply** or **OK**. No default location is baked into the project.
 
 The package ID is `com.github.nydgenga.glanceweather`; it can coexist with Advanced Weather Widget.
 
 To update after later builds:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --upgrade ./package
+kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-0.1.2.plasmoid
 ```
 
 To uninstall:
@@ -60,7 +60,7 @@ Sunrise, sunset, moonrise, moonset, and fractional lunar phase are returned by t
 
 ## Known limitations
 
-- **Ongoing desktop testing is essential.** v0.1.0 successfully loaded and fetched weather on Bazzite. v0.1.1 improves spacing and needs confirmation on-device.
+- **Ongoing desktop testing is essential.** v0.1.0 successfully loaded and fetched weather on Bazzite. v0.1.2 improves spacing and needs confirmation on-device.
 - Qt colour-emoji rendering depends on the available system emoji font.
 - Hourly forecast is deliberately a small on-demand popup, not a permanently visible section.
 - The moon-phase icon is one of eight Unicode approximations, not an exact rendering of the illuminated disc.
