@@ -17,7 +17,8 @@ function condition(code, isDay) {
 }
 
 function moon(phase) {
-    if (phase === null || phase === undefined || !isFinite(Number(phase))) {
+    if (phase === null || phase === undefined || phase === "" ||
+        !isFinite(Number(phase)) || Number(phase) < 0 || Number(phase) > 1) {
         return { icon: "🌙", label: "Phase unavailable", illumination: "" };
     }
     var p = ((Number(phase) % 1) + 1) % 1;
@@ -25,8 +26,9 @@ function moon(phase) {
     // not entire one-eighth segments of the lunar month. The previous code
     // rounded p*8, incorrectly labelling waxing gibbous days as first quarter.
     // Phase is a fraction of the synodic cycle: 0=new, .25=first quarter,
-    // .5=full, .75=last quarter. Keep narrow ±0.02-cycle windows around
-    // the events and label all intervening days waxing/waning appropriately.
+    // .5=full, .75=last quarter. Narrow ±0.02-cycle windows name the
+    // visually near-quarter days; they are NOT assertions of the exact
+    // astronomical instant of each primary phase.
     var phase;
     if (p < 0.02 || p >= 0.98) phase = { icon: "🌑", label: "New Moon" };
     else if (p < 0.23) phase = { icon: "🌒", label: "Waxing Crescent" };
@@ -38,6 +40,33 @@ function moon(phase) {
     else phase = { icon: "🌘", label: "Waning Crescent" };
     return { icon: phase.icon, label: phase.label,
         illumination: Math.round((1 - Math.cos(2 * Math.PI * p)) * 50) + "%" };
+}
+
+// Open-Meteo moon_phase is sampled at each forecast-local midnight.
+// Approximate the fraction for the current local time by interpolating
+// between today's and tomorrow's midnight samples. This improves phase
+// labels near boundaries without bundling an ephemeris library.
+// The API's model remains authoritative: interpolation is not an exact
+// prediction of the moment of a quarter/full/new Moon.
+function moonAtLocalTime(today, tomorrow, currentIso, localDate) {
+    if (today === null || today === undefined || !isFinite(Number(today)) ||
+        Number(today) < 0 || Number(today) > 1) return moon(null);
+    var p0 = Number(today);
+    if (tomorrow === null || tomorrow === undefined || !isFinite(Number(tomorrow)) ||
+        Number(tomorrow) < 0 || Number(tomorrow) > 1) return moon(p0);
+    if (typeof currentIso !== "string" || currentIso.slice(0, 10) !== localDate)
+        return moon(p0);
+    var match = /^\d{4}-\d\d-\d\dT(\d\d):(\d\d)/.exec(currentIso);
+    if (!match) return moon(p0);
+    var hh = Number(match[1]), mm = Number(match[2]);
+    if (hh > 23 || mm > 59) return moon(p0);
+    var p1 = Number(tomorrow);
+    // Forward modular difference, including wraparound across new moon.
+    var delta = (p1 - p0 + 1) % 1;
+    // Reject implausibly large jumps from malformed data; use today's value.
+    if (delta > 0.09) return moon(p0);
+    var dayFraction = (hh * 60 + mm) / 1440;
+    return moon((p0 + delta * dayFraction) % 1);
 }
 
 function clock(iso) {
@@ -118,7 +147,9 @@ function makeForecast(payload) {
             sunset: clock(d.sunset && d.sunset[0]),
             moonrise: clock(d.moonrise && d.moonrise[0]),
             moonset: clock(d.moonset && d.moonset[0]),
-            moon: moon(d.moon_phase && d.moon_phase[0])
+            moon: moonAtLocalTime(d.moon_phase && d.moon_phase[0],
+                                  d.moon_phase && d.moon_phase[1],
+                                  currentTime, d.time[0])
         },
         hourly: hourly
     };

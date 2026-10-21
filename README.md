@@ -2,7 +2,7 @@
 
 A compact, glanceable weather and astronomy plasmoid for KDE Plasma 6.
 
-**Status:** early prototype v0.1.5; v0.1.4 was visually verified on Bazzite; v0.1.5 increases supporting font sizes and refines lunar-phase labels pending visual confirmation.
+**Status:** experimental v0.1.6. The v0.1.5 compact default is visually verified on Bazzite; optional-section sizing and lunar interpolation require testing.
 
 ## Features
 
@@ -16,13 +16,15 @@ A compact, glanceable weather and astronomy plasmoid for KDE Plasma 6.
 - Automatic refresh every 30 minutes, manual refresh, and stale-data indicator
 - Native KDE colours and a compact desktop layout (~450 × 320 px)
 - Larger supporting text for improved glanceability; moon phase labels distinguish principal events from waxing/waning intervals
+- Natural height recommendations adapt to hidden sections; existing Plasma desktop instances may require resizing in Edit Mode
+- Moon phase interpolation uses two consecutive forecast-day samples for a better time-of-day estimate
 
 ## Install on Bazzite or another Plasma 6 desktop
 
-Download `glance-weather-0.1.5.plasmoid` from the accompanying artifacts. From a terminal, run:
+Download `glance-weather-0.1.6.plasmoid` from the accompanying artifacts. From a terminal, run:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --install ./glance-weather-0.1.5.plasmoid
+kpackagetool6 --type Plasma/Applet --install ./glance-weather-0.1.6.plasmoid
 ```
 
 Alternatively, if running from this source checkout:
@@ -38,7 +40,7 @@ The package ID is `com.github.nydgenga.glanceweather`; it can coexist with Advan
 To update after later builds:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-0.1.5.plasmoid
+kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-0.1.6.plasmoid
 ```
 
 To uninstall:
@@ -76,10 +78,11 @@ Your desktop and panels will briefly reload. No system reboot is required.
 
 ## Known limitations
 
-- **Ongoing desktop testing is essential.** v0.1.0 successfully loaded and fetched weather on Bazzite. v0.1.3 removed the scrollbar; v0.1.4 reallocated 12px beneath the forecast and was confirmed to look better on Bazzite. v0.1.5 increases small text sizes and corrects the lunar phase rounding; on-device verification is pending.
+- **Ongoing desktop testing is essential.** v0.1.0 successfully loaded and fetched weather on Bazzite. v0.1.3 removed the scrollbar; v0.1.4 reallocated 12px beneath the forecast and was confirmed to look better on Bazzite. v0.1.5 increased supporting text and corrected lunar labels; v0.1.6 improves natural-height preferences and interpolates phase at the local forecast time, pending testing on Bazzite.
 - Qt colour-emoji rendering depends on the available system emoji font.
 - Hourly forecast is deliberately a small on-demand popup, not a permanently visible section.
-- The moon-phase icon is one of eight Unicode approximations, not an exact rendering of the illuminated disc.
+- The moon-phase icon is one of eight Unicode approximations, not an exact rendering of the illuminated disc. Quarter/full/new labels are approximate windows, **not precise event times**. The source is Open-Meteo's daily phase sampled at local midnight, interpolated to the current forecast-local time using tomorrow's value when present.
+- A desktop widget's saved geometry is managed by Plasma. Hiding sections updates the natural/preferred height and removes their rows, but an already-placed widget may still remain physically tall until manually resized in Plasma Edit Mode. No shell-script hack or modification of appletsrc configuration is used.
 - Caching is in memory only; stale data survives a failed refresh but not a Plasma restart.
 - Astronomy comes from Open-Meteo's recently added daily fields; API availability should be verified on the user's Bazzite system.
 
@@ -88,3 +91,9 @@ Your desktop and panels will briefly reload. No system reboot is required.
 Glance Weather was designed under the direction of its project maintainer with code-development assistance from OpenAI's ChatGPT. This statement does not assert that the maintainer personally authored every line of code.
 
 Project-specific source code: **0BSD**. No code from Advanced Weather Widget was copied.
+
+## Astronomical verification (v0.1.6)
+
+The US Naval Observatory's 2026 primary-phase timetable gives New Moon (Oct 10 15:50 UTC), First Quarter (Oct 18 16:12 UTC), Full Moon (Oct 26 04:12 UTC), Last Quarter (Nov 1 20:28 UTC), and New Moon (Nov 9 07:02 UTC). We use these as independent sanity anchors for synthetic phase-cycle regression tests; they do not establish that the Open-Meteo live fractions are exact.
+
+Source: https://aa.usno.navy.mil/calculated/moon/phases?year=2026

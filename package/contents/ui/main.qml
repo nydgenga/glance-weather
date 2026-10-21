@@ -10,9 +10,14 @@ import "Weather.js" as Weather
 PlasmoidItem {
     id: root
     width: 450
-    height: 320
+    // A smaller natural size is appropriate when optional sections are absent.
+    // On an existing desktop applet, Plasma may preserve the user-set frame
+    // geometry. The minimum below enables manual downsizing in Edit Mode.
+    readonly property int naturalHeight: 320 - (showAstronomy ? 0 : 60)
+                                         - ((showHumidity || showWind) ? 0 : 21)
+    height: naturalHeight
     implicitWidth: 450
-    implicitHeight: showAstronomy ? 320 : 260
+    implicitHeight: naturalHeight
     switchWidth: 320
     switchHeight: 215
     toolTipMainText: i18n("Glance Weather")
@@ -63,12 +68,12 @@ PlasmoidItem {
     fullRepresentation: Item {
         id: panel
         Layout.minimumWidth: 310
-        // Keep the default compact. Content rows sum to about 289 logical px
-        // with 16px viewport insets, leaving room for Plasma frame padding.
-        // Smaller custom sizes may scroll, but 450×320 should never need to.
-        Layout.minimumHeight: Math.min(285, bodyColumn.implicitHeight + 16)
+        // Full content is about 305px including insets (320px default frame).
+        // Hidden sections collapse their rows and reduce the natural minimum.
+        // Smaller custom sizes may scroll, but normal sizes should not.
+        Layout.minimumHeight: Math.min(root.naturalHeight, bodyColumn.implicitHeight + 16)
         Layout.preferredWidth: 450
-        Layout.preferredHeight: Math.max(320, bodyColumn.implicitHeight + 28)
+        Layout.preferredHeight: Math.max(180, bodyColumn.implicitHeight + 31)
         readonly property color foreground: Kirigami.Theme.textColor
         readonly property color muted: Kirigami.Theme.disabledTextColor
         // One step larger supporting text for easier at-a-glance reading.
