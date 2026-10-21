@@ -13,9 +13,6 @@ Kirigami.FormLayout {
     property real cfg_longitude: 999
     property string cfg_temperatureUnit: "fahrenheit"
     property string cfg_windUnit: "mph"
-    property int cfg_forecastDays: 5
-    property bool cfg_showHumidity: true
-    property bool cfg_showWind: true
     property bool cfg_showAstronomy: true
 
     property var locations: []
@@ -92,23 +89,6 @@ Kirigami.FormLayout {
         model: ["Miles per hour", "Kilometers per hour"]
         currentIndex: page.cfg_windUnit === "kmh" ? 1 : 0
         onActivated: function(index) { page.cfg_windUnit = index === 1 ? "kmh" : "mph"; }
-    }
-    QQC2.SpinBox {
-        Kirigami.FormData.label: i18n("Forecast days:")
-        from: 3
-        to: 7
-        value: page.cfg_forecastDays
-        onValueModified: page.cfg_forecastDays = value
-    }
-    QQC2.CheckBox {
-        text: i18n("Show humidity")
-        checked: page.cfg_showHumidity
-        onToggled: page.cfg_showHumidity = checked
-    }
-    QQC2.CheckBox {
-        text: i18n("Show wind")
-        checked: page.cfg_showWind
-        onToggled: page.cfg_showWind = checked
     }
     QQC2.CheckBox {
         text: i18n("Show sun and moon")

@@ -46,6 +46,10 @@ for (let p = 0; p < 1; p += 0.001) {
 assert.strictEqual(weather.clock('2026-10-20T00:07'), '12:07 AM');
 assert.strictEqual(weather.clock('2026-10-20T18:05'), '6:05 PM');
 assert.strictEqual(weather.clock(null), '—');
+assert.strictEqual(weather.hourLabel('2026-10-20T00:00'), '12 AM');
+assert.strictEqual(weather.hourLabel('2026-10-20T12:00'), '12 PM');
+assert.strictEqual(weather.hourLabel('2026-10-20T19:00'), '7 PM');
+assert.strictEqual(weather.hourLabel('not a date'), '—');
 assert.strictEqual(weather.dayName('2026-10-20'), 'Tue');
 const payload = {
     current: { temperature_2m: 60.3, apparent_temperature: 51.2, weather_code: 0,
@@ -66,4 +70,28 @@ assert.strictEqual(report.today.moonrise, '—');
 assert.strictEqual(report.today.moon.label, 'First Quarter');
 assert.strictEqual(report.hourly.length, 2);
 assert.strictEqual(report.hourly[0].time, '5:00 PM');
+assert.strictEqual(report.hourly[0].shortTime, '5 PM');
+assert.strictEqual(report.hourly[0].rain, '10%');
+
+// A full seven-day response and hourly samples spanning midnight.
+const full = JSON.parse(JSON.stringify(payload));
+full.daily.time = ['2026-10-20','2026-10-21','2026-10-22','2026-10-23','2026-10-24','2026-10-25','2026-10-26'];
+full.daily.weather_code = [0,1,2,3,61,71,95];
+full.daily.temperature_2m_max = [66,67,68,69,70,71,72];
+full.daily.temperature_2m_min = [41,42,43,44,45,46,47];
+full.hourly.time = Array.from({length: 10}, (_, i) =>
+    `2026-10-${i < 8 ? '20' : '21'}T${String((16 + i) % 24).padStart(2,'0')}:00`);
+full.hourly.weather_code = new Array(10).fill(0);
+full.hourly.temperature_2m = new Array(10).fill(55);
+full.hourly.precipitation_probability = [0,5,10,15,20,25,30,35,40,45];
+full.hourly.is_day = new Array(10).fill(0);
+const reportFull = weather.makeForecast(full);
+assert.strictEqual(reportFull.days.length, 7);
+assert.strictEqual(reportFull.days[6].day, 'Mon');
+assert.strictEqual(reportFull.hourly.length, 6);
+assert.strictEqual(reportFull.hourly[0].shortTime, '5 PM');
+assert.strictEqual(reportFull.hourly[5].shortTime, '10 PM');
+// The hourly probability feed is optional; absent data should show —.
+delete full.hourly.precipitation_probability;
+assert.strictEqual(weather.makeForecast(full).hourly[0].rain, '—');
 console.log('Weather.js: phase boundaries, time interpolation, cycle sweep, and forecast parsing passed');

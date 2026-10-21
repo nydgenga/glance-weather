@@ -2,29 +2,29 @@
 
 A compact, glanceable weather and astronomy plasmoid for KDE Plasma 6.
 
-**Status:** experimental v0.1.6. The v0.1.5 compact default is visually verified on Bazzite; optional-section sizing and lunar interpolation require testing.
+**Status:** experimental v0.1.7. Replaces the failed automatic-geometry approach with a fixed daily/hourly layout; awaiting visual validation on Bazzite.
 
 ## Features
 
 - Current temperature, condition, feels-like, wind and humidity
-- 3–7 day **always-visible** forecast (5 days by default)
+- **Always-visible seven-day forecast**; no forecast-length preference
 - Today's sunrise/sunset, moonrise/moonset, moon-phase emoji
-- Pop-up showing the next six hourly forecast entries
+- **Always-visible six-hour strip** between current conditions and the seven-day forecast; includes local time, weather emoji, temperature, and precipitation chance
 - Colour Unicode emoji weather indicators, no bundled icon assets
 - Search for a city or postal code in the settings
 - Fahrenheit / Celsius and mph / km/h units
 - Automatic refresh every 30 minutes, manual refresh, and stale-data indicator
-- Native KDE colours and a compact desktop layout (~450 × 320 px)
+- Native KDE colours and a compact desktop layout targeting ~450 × 416 px
 - Larger supporting text for improved glanceability; moon phase labels distinguish principal events from waxing/waning intervals
-- Natural height recommendations adapt to hidden sections; existing Plasma desktop instances may require resizing in Edit Mode
+- Humidity and wind are always displayed; the astronomy section remains optional
 - Moon phase interpolation uses two consecutive forecast-day samples for a better time-of-day estimate
 
 ## Install on Bazzite or another Plasma 6 desktop
 
-Download `glance-weather-0.1.6.plasmoid` from the accompanying artifacts. From a terminal, run:
+Download `glance-weather-0.1.7.plasmoid` from the accompanying artifacts. From a terminal, run:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --install ./glance-weather-0.1.6.plasmoid
+kpackagetool6 --type Plasma/Applet --install ./glance-weather-0.1.7.plasmoid
 ```
 
 Alternatively, if running from this source checkout:
@@ -40,7 +40,7 @@ The package ID is `com.github.nydgenga.glanceweather`; it can coexist with Advan
 To update after later builds:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-0.1.6.plasmoid
+kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-0.1.7.plasmoid
 ```
 
 To uninstall:
@@ -63,7 +63,11 @@ Sunrise, sunset, moonrise, moonset, and fractional lunar phase are returned by t
 
 ## Layout notes
 
-The default 450 × 320 layout reserves an 85px forecast area, giving the day-low temperatures about 12px additional breathing room before the Sun/Moon divider. The nominal content height is ~305px including its own padding, so it should fit the default panel without a scrollbar. Exceptionally small sizes retain the scroll fallback.
+The v0.1.7 design is a **fixed-content** compact display: current conditions and larger high/low temperatures, humidity and wind, six upcoming hours, seven forecast days, and Sun/Moon information. The target frame size is approximately **450 × 416 logical pixels**. The last astronomy section can still be hidden in settings, but the desktop frame's saved geometry will not automatically shrink. This is intentional: Plasma manages desktop widget geometry.
+
+The hourly strip uses location-local forecast times and reports **precipitation probability**, not precipitation quantity. The horizontal strip assumes approximately 450px width for comfortable text; a scrollbar is retained for unusually undersized desktop widgets instead of truncating the entire footer.
+
+**Existing desktop widgets may keep their saved 450 × 320 frame even after an upgrade.** Enter Plasma Edit Mode and resize the existing instance vertically to roughly 416px once. Updating the package won't guarantee geometry changes. Thereafter the content should fit without needing daily adjustments.
 
 ## Updating a running widget
 
@@ -78,13 +82,12 @@ Your desktop and panels will briefly reload. No system reboot is required.
 
 ## Known limitations
 
-- **Ongoing desktop testing is essential.** v0.1.0 successfully loaded and fetched weather on Bazzite. v0.1.3 removed the scrollbar; v0.1.4 reallocated 12px beneath the forecast and was confirmed to look better on Bazzite. v0.1.5 increased supporting text and corrected lunar labels; v0.1.6 improves natural-height preferences and interpolates phase at the local forecast time, pending testing on Bazzite.
-- Qt colour-emoji rendering depends on the available system emoji font.
-- Hourly forecast is deliberately a small on-demand popup, not a permanently visible section.
-- The moon-phase icon is one of eight Unicode approximations, not an exact rendering of the illuminated disc. Quarter/full/new labels are approximate windows, **not precise event times**. The source is Open-Meteo's daily phase sampled at local midnight, interpolated to the current forecast-local time using tomorrow's value when present.
-- A desktop widget's saved geometry is managed by Plasma. Hiding sections updates the natural/preferred height and removes their rows, but an already-placed widget may still remain physically tall until manually resized in Plasma Edit Mode. No shell-script hack or modification of appletsrc configuration is used.
-- Caching is in memory only; stale data survives a failed refresh but not a Plasma restart.
-- Astronomy comes from Open-Meteo's recently added daily fields; API availability should be verified on the user's Bazzite system.
+- **Visual confirmation pending:** source/static tests do not substitute for testing the 450 × 416 layout on a real KDE Plasma 6 desktop.
+- Qt colour-emoji rendering depends on the installed emoji font.
+- Moon phase glyphs remain one of eight approximations; event labels are short intervals, not exact phase event times. Midnight fractions are interpolated toward the next day when provided.
+- Bazzite/Plasma may preserve an instance's old dimensions until it is resized in Edit Mode.
+- Weather caches are in memory only; stale data survives a failed request but not a Plasma restart.
+- If the Open-Meteo service lacks newer moon-phase fields, the widget falls back to the provider's basic weather and sunrise/sunset fields.
 
 ## Project and credits
 

@@ -81,6 +81,17 @@ function clock(iso) {
     return (hour % 12 || 12) + ":" + m[2] + (hour < 12 ? " AM" : " PM");
 }
 
+// Compact local hour label for the always-visible hourly outlook.
+// Avoid PC timezone conversions: the API returns already-local wall times.
+function hourLabel(iso) {
+    if (!iso || typeof iso !== "string") return "—";
+    var match = /T(\d\d):(\d\d)/.exec(iso);
+    if (!match) return "—";
+    var hh = Number(match[1]);
+    if (hh > 23) return "—";
+    return (hh % 12 || 12) + (hh < 12 ? " AM" : " PM");
+}
+
 function dayName(dateString) {
     // Extract calendar date independent of both PC and forecast timezone.
     if (!dateString || !/^\d{4}-\d\d-\d\d$/.test(dateString)) return "—";
@@ -125,9 +136,11 @@ function makeForecast(payload) {
             if (hourly.length === 6) break;
             hourly.push({
                 time: clock(hourlyData.time[j]),
+                shortTime: hourLabel(hourlyData.time[j]),
                 icon: condition(hourlyData.weather_code[j], hourlyData.is_day ? hourlyData.is_day[j] : 1).icon,
                 temperature: degrees(hourlyData.temperature_2m[j]),
-                rain: typeof hourlyData.precipitation_probability[j] === "number"
+                rain: hourlyData.precipitation_probability &&
+                      typeof hourlyData.precipitation_probability[j] === "number"
                     ? Math.round(hourlyData.precipitation_probability[j]) + "%" : "—"
             });
         }

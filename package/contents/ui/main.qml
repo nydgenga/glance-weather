@@ -10,14 +10,12 @@ import "Weather.js" as Weather
 PlasmoidItem {
     id: root
     width: 450
-    // A smaller natural size is appropriate when optional sections are absent.
-    // On an existing desktop applet, Plasma may preserve the user-set frame
-    // geometry. The minimum below enables manual downsizing in Edit Mode.
-    readonly property int naturalHeight: 320 - (showAstronomy ? 0 : 60)
-                                         - ((showHumidity || showWind) ? 0 : 21)
-    height: naturalHeight
+    // A stable desktop layout replaces the old configuration-dependent geometry.
+    // Existing desktop placements retain their saved dimensions in Plasma,
+    // so they may need one manual resize after this update.
+    height: 416
     implicitWidth: 450
-    implicitHeight: naturalHeight
+    implicitHeight: 416
     switchWidth: 320
     switchHeight: 215
     toolTipMainText: i18n("Glance Weather")
@@ -29,9 +27,6 @@ PlasmoidItem {
                                           && longitude >= -180 && longitude <= 180
     readonly property string temperatureUnit: Plasmoid.configuration.temperatureUnit || "fahrenheit"
     readonly property string windUnit: Plasmoid.configuration.windUnit || "mph"
-    readonly property int forecastDays: Math.max(3, Math.min(7, Plasmoid.configuration.forecastDays || 5))
-    readonly property bool showHumidity: Plasmoid.configuration.showHumidity !== false
-    readonly property bool showWind: Plasmoid.configuration.showWind !== false
     readonly property bool showAstronomy: Plasmoid.configuration.showAstronomy !== false
     readonly property var forecast: weatherService.data
 
@@ -40,7 +35,7 @@ PlasmoidItem {
 
     function refreshWeather() {
         if (validLocation)
-            weatherService.refresh(latitude, longitude, temperatureUnit, windUnit, forecastDays);
+            weatherService.refresh(latitude, longitude, temperatureUnit, windUnit);
     }
     Timer { id: settingsDebounce; interval: 450; onTriggered: root.refreshWeather() }
     Timer { interval: 20000; running: weatherService.busy; onTriggered: weatherService.cancelDueToTimeout() }
@@ -49,7 +44,6 @@ PlasmoidItem {
     onLongitudeChanged: settingsDebounce.restart()
     onTemperatureUnitChanged: settingsDebounce.restart()
     onWindUnitChanged: settingsDebounce.restart()
-    onForecastDaysChanged: settingsDebounce.restart()
     onValidLocationChanged: settingsDebounce.restart()
     Component.onCompleted: settingsDebounce.restart()
 
@@ -68,12 +62,11 @@ PlasmoidItem {
     fullRepresentation: Item {
         id: panel
         Layout.minimumWidth: 310
-        // Full content is about 305px including insets (320px default frame).
-        // Hidden sections collapse their rows and reduce the natural minimum.
-        // Smaller custom sizes may scroll, but normal sizes should not.
-        Layout.minimumHeight: Math.min(root.naturalHeight, bodyColumn.implicitHeight + 16)
+        // 450×416 is the intended desktop size. If the user manually chooses
+        // a smaller frame, retain the scroll fallback rather than clipping.
+        Layout.minimumHeight: 390
         Layout.preferredWidth: 450
-        Layout.preferredHeight: Math.max(180, bodyColumn.implicitHeight + 31)
+        Layout.preferredHeight: 416
         readonly property color foreground: Kirigami.Theme.textColor
         readonly property color muted: Kirigami.Theme.disabledTextColor
         // One step larger supporting text for easier at-a-glance reading.
@@ -191,13 +184,13 @@ PlasmoidItem {
                     }
                     Text {
                         anchors.right: parent.right
-                        y: 10
+                        y: 7
                         text: root.forecast.days.length ? root.forecast.days[0].high + " / " + root.forecast.days[0].low : "—"
-                        color: panel.foreground; font.bold: true; font.pixelSize: panel.smallSize + 1
+                        color: panel.foreground; font.bold: true; font.pixelSize: 18
                     }
                     Text {
                         anchors.right: parent.right
-                        y: 31
+                        y: 35
                         text: i18n("Feels like %1", root.forecast.current.feels)
                         color: panel.muted; font.pixelSize: panel.smallSize
                     }
@@ -205,19 +198,77 @@ PlasmoidItem {
 
                 Item {
                     width: parent.width
-                    height: root.showHumidity || root.showWind ? 18 : 0
-                    visible: height > 0
+                    height: 18
                     Row {
                         anchors.verticalCenter: parent.verticalCenter
                         spacing: 16
-                        Text { visible: root.showHumidity; text: "💧 " + root.forecast.current.humidity; color: panel.foreground; font.pixelSize: panel.smallSize + 1 }
-                        Text { visible: root.showWind; text: "💨 " + Weather.wind(root.forecast.current.wind, root.windUnit); color: panel.foreground; font.pixelSize: panel.smallSize + 1 }
+                        Text { text: "💧 " + root.forecast.current.humidity; color: panel.foreground; font.pixelSize: panel.smallSize + 1 }
+                        Text { text: "💨 " + Weather.wind(root.forecast.current.wind, root.windUnit); color: panel.foreground; font.pixelSize: panel.smallSize + 1 }
                     }
                 }
 
                 Rectangle { width: parent.width; height: 1; color: panel.foreground; opacity: 0.18 }
 
-                // Five readable forecast columns, equally sized across the body.
+                // Hourly outlook is always visible; six equal-width columns.
+                // Times are in the forecast location's timezone. Rain is the
+                // provider's precipitation *probability*, not an amount.
+                Item {
+                    width: parent.width
+                    height: 88
+                    Text {
+                        x: 0; y: 0
+                        text: i18n("Next six hours")
+                        color: panel.muted
+                        font.pixelSize: 12
+                        font.bold: true
+                    }
+                    Row {
+                        x: 0; y: 18
+                        width: parent.width
+                        height: 70
+                        spacing: 0
+                        Repeater {
+                            model: root.forecast.hourly || []
+                            delegate: Item {
+                                required property var modelData
+                                width: Math.floor(bodyColumn.width / 6)
+                                height: 70
+                                Text {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    y: 0
+                                    text: modelData.shortTime
+                                    color: panel.muted
+                                    font.pixelSize: 12
+                                }
+                                Text {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    y: 15
+                                    text: modelData.icon
+                                    font.pixelSize: 19
+                                }
+                                Text {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    y: 36
+                                    text: modelData.temperature
+                                    color: panel.foreground
+                                    font.pixelSize: 14
+                                    font.bold: true
+                                }
+                                Text {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    y: 54
+                                    text: modelData.rain === "—" ? "" : "💧" + modelData.rain
+                                    color: panel.muted
+                                    font.pixelSize: 11
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Rectangle { width: parent.width; height: 1; color: panel.foreground; opacity: 0.18 }
+
+                // Seven readable forecast columns, equally sized across the body.
                 // Deliberately reserve 12px below daily lows before the astronomy divider.
                 // This redistributes the previously unused default bottom space.
                 Item {
@@ -227,10 +278,10 @@ PlasmoidItem {
                         anchors.fill: parent
                         spacing: 0
                         Repeater {
-                            model: root.forecast.days.slice(0, root.forecastDays)
+                            model: root.forecast.days.slice(0, 7)
                             delegate: Item {
                                 required property var modelData
-                                width: Math.floor(bodyColumn.width / root.forecastDays)
+                                width: Math.floor(bodyColumn.width / 7)
                                 height: 85
                                 Column {
                                     anchors.horizontalCenter: parent.horizontalCenter
@@ -289,8 +340,7 @@ PlasmoidItem {
                     }
                 }
 
-                // Footer follows astronomy without occupying a phantom row.
-                // At the normal widget size, it fits with slack below it.
+                // Provider attribution; the old hourly popup has moved inline.
                 Item {
                     width: parent.width
                     height: 22
@@ -300,49 +350,9 @@ PlasmoidItem {
                         text: i18n("Weather by Open-Meteo")
                         color: panel.muted; font.pixelSize: 11
                     }
-                    QQC2.ToolButton {
-                        anchors.right: parent.right
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: 90; height: 22
-                        text: i18n("Hourly ▴")
-                        font.pixelSize: 12
-                        onClicked: hourlyPopup.open()
-                    }
                 }
             }
         }
 
-        QQC2.Popup {
-            id: hourlyPopup
-            parent: panel
-            x: Math.round((panel.width - width) / 2)
-            y: Math.max(0, panel.height - height - 8)
-            width: Math.min(320, panel.width - 16)
-            height: Math.min(280, 56 + root.forecast.hourly.length * 31)
-            padding: 10
-            closePolicy: QQC2.Popup.CloseOnEscape | QQC2.Popup.CloseOnPressOutside
-            background: Rectangle {
-                color: Kirigami.Theme.backgroundColor
-                border.color: Kirigami.Theme.textColor
-                border.width: 1
-                radius: 8
-            }
-            ColumnLayout {
-                anchors.fill: parent
-                spacing: 4
-                PlasmaComponents.Label { text: i18n("Next six hours · rain chance"); font.bold: true; font.pixelSize: 13 }
-                Repeater {
-                    model: root.forecast.hourly || []
-                    delegate: RowLayout {
-                        required property var modelData
-                        Layout.fillWidth: true
-                        PlasmaComponents.Label { text: modelData.time; font.pixelSize: 12; Layout.preferredWidth: 85 }
-                        PlasmaComponents.Label { text: modelData.icon; font.pixelSize: 18; Layout.fillWidth: true }
-                        PlasmaComponents.Label { text: modelData.temperature; font.pixelSize: 12; Layout.preferredWidth: 48 }
-                        PlasmaComponents.Label { text: "🌧 " + modelData.rain; font.pixelSize: 12 }
-                    }
-                }
-            }
-        }
     }
 }

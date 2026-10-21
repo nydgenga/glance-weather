@@ -1,32 +1,29 @@
 // SPDX-License-Identifier: 0BSD
-// Static budget check for the v0.1.6 compact layout. This does not replace
-// testing QML against Plasma's runtime frame and font metrics.
+// Structural/budget checks. QML rendering still needs a real Plasma session.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
-const text = fs.readFileSync('package/contents/ui/main.qml', 'utf8');
-assert.match(text, /height: 64\b/); // current conditions
-assert.match(text, /height: 85\b/); // daily forecast with extra space before the sun/moon divider
-assert.match(text, /height: root\.showAstronomy \? 56 : 0/);
-assert.match(text, /spacing: 3\s+\/\/ Header:/);
-assert.match(text, /interactive: contentHeight > height \+ 1/);
-assert.ok(text.includes('readonly property int naturalHeight: 320 - (showAstronomy ? 0 : 60)'));
-assert.ok(text.includes('- ((showHumidity || showWind) ? 0 : 21)'));
-assert.ok(text.includes('height: naturalHeight'));
-assert.ok(text.includes('implicitHeight: naturalHeight'));
-assert.ok(text.includes('Layout.preferredHeight: Math.max(180, bodyColumn.implicitHeight + 31)'));
-const naturalHeight = (astronomy, hasDetails) => 320 - (astronomy ? 0 : 60) - (hasDetails ? 0 : 21);
-assert.equal(naturalHeight(true, true), 320);
-assert.equal(naturalHeight(false, true), 260);
-assert.equal(naturalHeight(true, false), 299);
-assert.equal(naturalHeight(false, false), 239);
-assert.match(text, /QQC2\.ScrollBar\.vertical: QQC2\.ScrollBar/);
-assert.match(text, /smallSize: panel\.width < 390 \? 12 : 13/);
-assert.match(text, /text: i18n\("Rise %1", root\.forecast\.today\.sunrise\); color: panel\.muted; font\.pixelSize: 12/);
-const sections = [21, 64, 18, 1, 85, 1, 56, 22];
-const height = sections.reduce((sum, value) => sum + value, 0) + 7 * 3 + 16;
-assert.ok(height <= 308, `Default nominal body height ${height} exceeds 308`);
-const metadata = JSON.parse(fs.readFileSync('package/metadata.json'));
-assert.equal(metadata.KPlugin.Version, '0.1.6');
+const main = fs.readFileSync('package/contents/ui/main.qml', 'utf8');
+const service = fs.readFileSync('package/contents/ui/WeatherService.qml', 'utf8');
+const settings = fs.readFileSync('package/contents/ui/configGeneral.qml', 'utf8');
+const xml = fs.readFileSync('package/contents/config/main.xml', 'utf8');
+const metadata = JSON.parse(fs.readFileSync('package/metadata.json', 'utf8'));
+assert.equal(metadata.KPlugin.Version, '0.1.7');
 assert.equal(metadata.KPlugin.Id, 'com.github.nydgenga.glanceweather');
-assert.ok(height >= 300, "Spacing budget unexpectedly reduced");
-console.log(`Nominal compact body height: ${height}px including internal padding`);
+assert.match(main, /height: 416\b/);
+assert.match(main, /implicitHeight: 416\b/);
+assert.match(main, /font\.pixelSize: 18/); // hero high/low temperatures
+assert.match(main, /text: i18n\("Next six hours"\)/);
+assert.match(main, /model: root\.forecast\.hourly \|\| \[\]/);
+assert.match(main, /root\.forecast\.days\.slice\(0, 7\)/);
+assert.match(main, /Weather\.wind\(root\.forecast\.current\.wind, root\.windUnit\)/);
+assert.match(main, /root\.forecast\.current\.humidity/);
+assert.doesNotMatch(main, /forecastDays|showHumidity|showWind|hourlyPopup/);
+assert.doesNotMatch(settings + xml, /forecastDays|showHumidity|showWind/);
+assert.match(service, /"forecast_days=7"/);
+assert.doesNotMatch(service, /dayCount/);
+assert.match(main, /showAstronomy/);
+const rows = [21, 64, 18, 1, 88, 1, 85, 1, 56, 22];
+const budget = rows.reduce((a, b) => a + b, 0) + (rows.length - 1) * 3 + 16;
+assert.equal(budget, 400);
+assert.ok(budget + 12 <= 416); // including desired frame breathing room
+console.log(`Static seven-day/six-hour layout budget: ${budget}px inside 416px frame`);

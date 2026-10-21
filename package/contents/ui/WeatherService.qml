@@ -30,7 +30,7 @@ QtObject {
         error = "Weather request timed out";
     }
 
-    function refresh(latitude, longitude, temperatureUnit, windUnit, dayCount) {
+    function refresh(latitude, longitude, temperatureUnit, windUnit) {
         if (!isFinite(latitude) || !isFinite(longitude) || latitude < -90 || latitude > 90
             || longitude < -180 || longitude > 180) return;
         generation += 1;
@@ -50,7 +50,7 @@ QtObject {
             "current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day",
             "hourly=temperature_2m,weather_code,precipitation_probability,is_day",
             "timezone=auto",
-            "forecast_days=" + Math.min(7, Math.max(3, dayCount || 5)),
+            "forecast_days=7",
             "temperature_unit=" + (temperatureUnit === "celsius" ? "celsius" : "fahrenheit"),
             "wind_speed_unit=" + (windUnit === "kmh" ? "kmh" : "mph")
         ];
