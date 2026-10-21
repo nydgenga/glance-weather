@@ -9,6 +9,5 @@
     <entry name="longitude" type="Double"><default>999</default></entry>
     <entry name="temperatureUnit" type="String"><default>fahrenheit</default></entry>
     <entry name="windUnit" type="String"><default>mph</default></entry>
-    <entry name="showAstronomy" type="Bool"><default>true</default></entry>
   </group>
 </kcfg>

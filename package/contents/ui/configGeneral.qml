@@ -13,7 +13,6 @@ Kirigami.FormLayout {
     property real cfg_longitude: 999
     property string cfg_temperatureUnit: "fahrenheit"
     property string cfg_windUnit: "mph"
-    property bool cfg_showAstronomy: true
 
     property var locations: []
     property string searchError: ""
@@ -89,11 +88,6 @@ Kirigami.FormLayout {
         model: ["Miles per hour", "Kilometers per hour"]
         currentIndex: page.cfg_windUnit === "kmh" ? 1 : 0
         onActivated: function(index) { page.cfg_windUnit = index === 1 ? "kmh" : "mph"; }
-    }
-    QQC2.CheckBox {
-        text: i18n("Show sun and moon")
-        checked: page.cfg_showAstronomy
-        onToggled: page.cfg_showAstronomy = checked
     }
 
     function searchCities() {

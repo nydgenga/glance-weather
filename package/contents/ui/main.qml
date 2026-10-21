@@ -27,7 +27,6 @@ PlasmoidItem {
                                           && longitude >= -180 && longitude <= 180
     readonly property string temperatureUnit: Plasmoid.configuration.temperatureUnit || "fahrenheit"
     readonly property string windUnit: Plasmoid.configuration.windUnit || "mph"
-    readonly property bool showAstronomy: Plasmoid.configuration.showAstronomy !== false
     readonly property var forecast: weatherService.data
 
     WeatherService { id: weatherService }
@@ -126,9 +125,9 @@ PlasmoidItem {
                 // gaps, rather than leaving it all below the attribution.
                 // A bounded 2–9px gap avoids excessive spacing when a desktop
                 // instance retains an old, unusually large geometry.
-                // The counts include only visible rows when astronomy is off.
-                readonly property int activeRowsHeight: root.showAstronomy ? 373 : 320
-                readonly property int activeGaps: root.showAstronomy ? 8 : 6
+                // All sections, including astronomy, are permanently visible.
+                readonly property int activeRowsHeight: 373
+                readonly property int activeGaps: 8
                 spacing: Math.max(2, Math.min(9,
                     (bodyViewport.height - y - 10 - activeRowsHeight) / activeGaps))
 
@@ -322,14 +321,13 @@ PlasmoidItem {
                     }
                 }
 
-                Rectangle { visible: root.showAstronomy; width: parent.width; height: root.showAstronomy ? 1 : 0; color: panel.foreground; opacity: 0.18 }
+                Rectangle { width: parent.width; height: 1; color: panel.foreground; opacity: 0.18 }
 
                 // Sun and Moon are true separate mini-sections: each time is
                 // on its own line. This avoids the continuous text run seen in v0.1.1.
                 Item {
-                    visible: root.showAstronomy
                     width: parent.width
-                    height: root.showAstronomy ? 52 : 0
+                    height: 52
                     Rectangle {
                         anchors.horizontalCenter: parent.horizontalCenter
                         y: 4
@@ -366,12 +364,12 @@ PlasmoidItem {
                     }
                 }
 
-                // Provider attribution; the old hourly popup has moved inline.
+                // Provider attribution centered across the full content area.
                 Item {
                     width: parent.width
                     height: 20
                     Text {
-                        anchors.left: parent.left
+                        anchors.horizontalCenter: parent.horizontalCenter
                         anchors.verticalCenter: parent.verticalCenter
                         text: i18n("Weather by Open-Meteo")
                         color: panel.muted; font.pixelSize: 11

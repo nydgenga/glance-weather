@@ -2,7 +2,7 @@
 
 A compact, glanceable weather and astronomy plasmoid for KDE Plasma 6.
 
-**Status:** experimental v0.1.10. Uses the available vertical space for modest section spacing and separates the current condition emoji from the temperature. Awaiting confirmation on Bazzite.
+**Status:** experimental v0.1.11. Centers attribution and permanently shows the Sun/Moon section, with no visual changes elsewhere. Awaiting confirmation on Bazzite.
 
 ## Features
 
@@ -16,15 +16,15 @@ A compact, glanceable weather and astronomy plasmoid for KDE Plasma 6.
 - Automatic refresh every 30 minutes, manual refresh, and stale-data indicator
 - Native KDE colours and a compact desktop layout targeting ~450 × 416 px
 - Larger supporting text for improved glanceability; moon phase labels distinguish principal events from waxing/waning intervals
-- Humidity and wind are always displayed; the astronomy section remains optional
+- Humidity, wind, and astronomy are always displayed
 - Moon phase interpolation uses two consecutive forecast-day samples for a better time-of-day estimate
 
 ## Install on Bazzite or another Plasma 6 desktop
 
-Download `glance-weather-0.1.10.plasmoid` from the accompanying artifacts. From a terminal, run:
+Download `glance-weather-0.1.11.plasmoid` from the accompanying artifacts. From a terminal, run:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --install ./glance-weather-0.1.10.plasmoid
+kpackagetool6 --type Plasma/Applet --install ./glance-weather-0.1.11.plasmoid
 ```
 
 Alternatively, if running from this source checkout:
@@ -40,7 +40,7 @@ The package ID is `com.github.nydgenga.glanceweather`; it can coexist with Advan
 To update after later builds:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-0.1.10.plasmoid
+kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-0.1.11.plasmoid
 ```
 
 To uninstall:
@@ -63,7 +63,7 @@ Sunrise, sunset, moonrise, moonset, and fractional lunar phase are returned by t
 
 ## Layout notes
 
-The v0.1.9 design is a **fixed-content** compact display: a taller current-conditions block on the left; high/low, feels-like, humidity and wind aligned on the right; six upcoming hours with more vertical breathing room; seven forecast days; and Sun/Moon information. The target frame size is approximately **450 × 416 logical pixels**. The last astronomy section can still be hidden in settings, but the desktop frame's saved geometry will not automatically shrink. This is intentional: Plasma manages desktop widget geometry.
+The v0.1.9 design is a **fixed-content** compact display: a taller current-conditions block on the left; high/low, feels-like, humidity and wind aligned on the right; six upcoming hours with more vertical breathing room; seven forecast days; and Sun/Moon information. The target frame size is approximately **450 × 416 logical pixels**. Astronomy is always visible; there is no longer a setting to hide it. Plasma manages the desktop widget geometry, so removing this option also avoids an empty fixed-height frame.
 
 The taller hourly strip uses location-local forecast times and reports **precipitation probability**, not precipitation quantity. The horizontal strip assumes approximately 450px width for comfortable text; a scrollbar is retained for unusually undersized desktop widgets instead of truncating the entire footer.
 
@@ -112,3 +112,11 @@ Bazzite confirmed the larger v0.1.8 current-temperature and hourly layouts, but 
 - **Plasma geometry:** A saved desktop widget retains its previous outer dimensions. This revision fills those dimensions more evenly; it does not attempt to change Plasma's saved geometry.
 
 As before, the package requires testing in a real Plasma 6 session. The QML's height-dependent spacing is covered by static checks and budget tests for 416px and 444px viewports, but exact emoji width and font metrics can only be confirmed in KDE.
+
+## Version 0.1.11 footer and settings refinement
+
+- The **Weather by Open-Meteo** attribution is horizontally centered within the full-width widget content area, rather than aligned to the left. Its text size, colour and footer height are unchanged.
+- The Sun/Moon section is permanently visible. Removed the **Show sun and moon** checkbox, its QML configuration property, and its KConfig entry. Existing saved `showAstronomy=false` preferences are no longer read, so upgrading restores the astronomy section even if it was previously disabled.
+- The 450 × 416 default size, spacing budget, hourly and seven-day forecasts, font sizes, and units remain unchanged.
+
+In an already-running Plasma session, restart Plasma Shell after upgrading to load the new QML.
