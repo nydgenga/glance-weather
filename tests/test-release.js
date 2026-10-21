@@ -1,0 +1,30 @@
+// SPDX-License-Identifier: 0BSD
+// Release safety checks; not a substitute for a Plasma runtime.
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '..');
+const p = x => fs.readFileSync(path.join(root, x), 'utf8');
+const metadata = JSON.parse(p('package/metadata.json'));
+const xml = p('package/contents/config/main.xml');
+const settings = p('package/contents/ui/configGeneral.qml');
+const readme = p('README.md');
+const license = p('LICENSE');
+assert.equal(metadata.KPlugin.Id, 'com.github.nydgenga.glanceweather');
+assert.equal(metadata.KPlugin.Version, '1.0.0-rc.1');
+assert.equal(metadata.KPlugin.License, '0BSD');
+assert.equal(metadata['X-Plasma-API-Minimum-Version'], '6.0');
+assert.equal(metadata.KPackageStructure, 'Plasma/Applet');
+assert.match(license, /Zero-Clause BSD License/);
+assert.equal(p('package/LICENSE'), license);
+assert.match(xml, /name="cityName" type="String"><default><\/default>/);
+assert.match(xml, /name="latitude" type="Double"><default>999<\/default>/);
+assert.match(xml, /name="longitude" type="Double"><default>999<\/default>/);
+assert.match(settings, /e\.g\. Seattle or 98101/);
+assert.doesNotMatch(settings, /cfg_showAstronomy/);
+assert.match(readme, /noncommercial use/);
+assert.match(readme, /local \*\*noon\*\*/);
+assert.ok(fs.existsSync(path.join(root, 'RELEASE_CHECKLIST.md')));
+assert.ok(fs.existsSync(path.join(root, 'CHANGELOG.md')));
+assert.ok(fs.existsSync(path.join(root, 'scripts/package.py')));
+console.log('Release checks passed: metadata, license, empty location, attribution and documentation');
