@@ -62,8 +62,8 @@ PlasmoidItem {
     fullRepresentation: Item {
         id: panel
         Layout.minimumWidth: 310
-        // Keep the approved typography and columns, but remove unused vertical
-        // allocations so the whole view fits the previously used 450×416 frame.
+        // Keep the approved typography and columns. Any free viewport height
+        // becomes small, evenly distributed section gaps, not bottom dead space.
         // Plasma may retain an older manually chosen desktop size.
         Layout.minimumHeight: 400
         Layout.preferredWidth: 450
@@ -122,7 +122,15 @@ PlasmoidItem {
                 x: 9
                 y: 5
                 width: Math.max(0, bodyViewport.width - 18)
-                spacing: 2
+                // Share surplus viewport height across the existing section
+                // gaps, rather than leaving it all below the attribution.
+                // A bounded 2–9px gap avoids excessive spacing when a desktop
+                // instance retains an old, unusually large geometry.
+                // The counts include only visible rows when astronomy is off.
+                readonly property int activeRowsHeight: root.showAstronomy ? 373 : 320
+                readonly property int activeGaps: root.showAstronomy ? 8 : 6
+                spacing: Math.max(2, Math.min(9,
+                    (bodyViewport.height - y - 10 - activeRowsHeight) / activeGaps))
 
                 // Header: the long location name yields to the update status.
                 Item {
@@ -170,19 +178,25 @@ PlasmoidItem {
                     width: parent.width
                     height: 91
                     Text {
+                        id: currentWeatherIcon
                         x: 0; y: 8
                         text: root.forecast.current.condition.icon
                         font.pixelSize: panel.width < 390 ? 43 : 52
                     }
                     Text {
-                        x: 60; y: 0
+                        id: currentTemperature
+                        // Emoji glyph widths vary across fonts and conditions.
+                        // Use the actual glyph width instead of a fixed x:60.
+                        x: currentWeatherIcon.x + currentWeatherIcon.implicitWidth
+                           + (panel.width < 390 ? 7 : 11)
+                        y: 0
                         text: root.forecast.current.temperature
                         color: panel.foreground
                         font.pixelSize: panel.width < 390 ? 40 : 50
                         font.bold: true
                     }
                     Text {
-                        x: 61; y: 67
+                        x: currentTemperature.x + 1; y: 67
                         text: root.forecast.current.condition.label
                         color: panel.foreground
                         font.pixelSize: panel.smallSize

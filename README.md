@@ -2,7 +2,7 @@
 
 A compact, glanceable weather and astronomy plasmoid for KDE Plasma 6.
 
-**Status:** experimental v0.1.9. Retains the visually approved v0.1.8 layout, while correcting the scrollbar caused by excess allocated height. Awaiting confirmation on Bazzite.
+**Status:** experimental v0.1.10. Uses the available vertical space for modest section spacing and separates the current condition emoji from the temperature. Awaiting confirmation on Bazzite.
 
 ## Features
 
@@ -21,10 +21,10 @@ A compact, glanceable weather and astronomy plasmoid for KDE Plasma 6.
 
 ## Install on Bazzite or another Plasma 6 desktop
 
-Download `glance-weather-0.1.9.plasmoid` from the accompanying artifacts. From a terminal, run:
+Download `glance-weather-0.1.10.plasmoid` from the accompanying artifacts. From a terminal, run:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --install ./glance-weather-0.1.9.plasmoid
+kpackagetool6 --type Plasma/Applet --install ./glance-weather-0.1.10.plasmoid
 ```
 
 Alternatively, if running from this source checkout:
@@ -40,7 +40,7 @@ The package ID is `com.github.nydgenga.glanceweather`; it can coexist with Advan
 To update after later builds:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-0.1.9.plasmoid
+kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-0.1.10.plasmoid
 ```
 
 To uninstall:
@@ -49,7 +49,7 @@ To uninstall:
 kpackagetool6 --type Plasma/Applet --remove com.github.nydgenga.glanceweather
 ```
 
-Do not restart Plasma or remove its cache unless troubleshooting requires it.
+Restart Plasma Shell after updating an already-running widget to ensure the revised QML loads. Do not delete user settings or caches unless troubleshooting requires it.
 
 ## Provider / usage
 
@@ -104,3 +104,11 @@ Source: https://aa.usno.navy.mil/calculated/moon/phases?year=2026
 ## Version 0.1.9 scrollbar correction
 
 Bazzite confirmed the larger v0.1.8 current-temperature and hourly layouts, but the 450×444 logical-pixel declared frame still showed an unwanted scrollbar on an existing desktop instance. This revision **preserves the typography, exact six-hour label/icon/temperature/rain positioning, the seven-day forecast height, and the right-aligned current metrics**, while reducing excess container allocations, section spacing, and top/bottom reserved padding. The static content-height budget is now **399 logical pixels**, leaving 17 pixels in the intended 450×416 frame. The viewport uses its actual QML top inset when computing content height. Plasma's saved instance geometry still takes precedence over default height declarations; very small manually resized widgets retain a scroll fallback. The correction requires on-device visual confirmation.
+
+## Version 0.1.10 spacing refinements
+
+- **Variable-width weather emojis:** The temperature and description are positioned relative to the weather emoji's rendered `implicitWidth`, plus an 11-pixel gap at normal widths (7 pixels on narrow layouts). This avoids collisions when emoji glyphs vary in width.
+- **Unused lower space:** Rather than stretching the widget or making the text smaller, the existing section gaps expand from 2 to at most 9 logical pixels when a desktop widget has extra height. The space is distributed between sections, including near the footer, rather than accumulating below the attribution. No new settings.
+- **Plasma geometry:** A saved desktop widget retains its previous outer dimensions. This revision fills those dimensions more evenly; it does not attempt to change Plasma's saved geometry.
+
+As before, the package requires testing in a real Plasma 6 session. The QML's height-dependent spacing is covered by static checks and budget tests for 416px and 444px viewports, but exact emoji width and font metrics can only be confirmed in KDE.
