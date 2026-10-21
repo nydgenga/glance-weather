@@ -63,11 +63,12 @@ PlasmoidItem {
     fullRepresentation: Item {
         id: panel
         Layout.minimumWidth: 310
-        // Explicitly budget for the content, not the implicit heights of styled
-        // buttons/labels in a fill-height ColumnLayout (the v0.1.0/0.1.1 bug).
-        Layout.minimumHeight: Math.min(290, bodyColumn.implicitHeight + 16)
+        // Keep the default compact. Content rows sum to about 277 logical px
+        // with 16px viewport insets, leaving room for Plasma frame padding.
+        // Smaller custom sizes may scroll, but 450×320 should never need to.
+        Layout.minimumHeight: Math.min(285, bodyColumn.implicitHeight + 16)
         Layout.preferredWidth: 450
-        Layout.preferredHeight: bodyColumn.implicitHeight + 16
+        Layout.preferredHeight: Math.max(320, bodyColumn.implicitHeight + 28)
         readonly property color foreground: Kirigami.Theme.textColor
         readonly property color muted: Kirigami.Theme.disabledTextColor
         readonly property int smallSize: panel.width < 390 ? 11 : 12
@@ -110,7 +111,7 @@ PlasmoidItem {
             clip: true
             contentWidth: width
             contentHeight: bodyColumn.implicitHeight + 16
-            interactive: contentHeight > height
+            interactive: contentHeight > height + 1
             boundsBehavior: Flickable.StopAtBounds
             QQC2.ScrollBar.vertical: QQC2.ScrollBar { policy: bodyViewport.interactive ? QQC2.ScrollBar.AsNeeded : QQC2.ScrollBar.AlwaysOff }
 
@@ -119,17 +120,17 @@ PlasmoidItem {
                 x: 9
                 y: 8
                 width: Math.max(0, bodyViewport.width - 18)
-                spacing: 4
+                spacing: 3
 
                 // Header: the long location name yields to the update status.
                 Item {
                     width: parent.width
-                    height: 23
+                    height: 21
                     QQC2.ToolButton {
                         id: refreshButton
                         anchors.right: parent.right
                         anchors.verticalCenter: parent.verticalCenter
-                        width: 27; height: 23
+                        width: 27; height: 21
                         text: "↻"; font.pixelSize: 17
                         enabled: !weatherService.busy
                         onClicked: root.refreshWeather()
@@ -160,14 +161,14 @@ PlasmoidItem {
                     }
                 }
 
-                // Hero: fixed, measured row; no layout-managed phantom height.
+                // Hero: constrained to content, not an unnecessarily tall reserved row.
                 Item {
                     width: parent.width
-                    height: 72
+                    height: 64
                     Text {
-                        x: 0; y: 8
+                        x: 0; y: 4
                         text: root.forecast.current.condition.icon
-                        font.pixelSize: panel.width < 390 ? 37 : 42
+                        font.pixelSize: panel.width < 390 ? 36 : 40
                     }
                     Text {
                         x: 58; y: 1
@@ -177,20 +178,20 @@ PlasmoidItem {
                         font.bold: true
                     }
                     Text {
-                        x: 58; y: 50
+                        x: 58; y: 46
                         text: root.forecast.current.condition.label
                         color: panel.foreground
                         font.pixelSize: panel.smallSize
                     }
                     Text {
                         anchors.right: parent.right
-                        y: 12
+                        y: 10
                         text: root.forecast.days.length ? root.forecast.days[0].high + " / " + root.forecast.days[0].low : "—"
                         color: panel.foreground; font.bold: true; font.pixelSize: panel.smallSize + 1
                     }
                     Text {
                         anchors.right: parent.right
-                        y: 37
+                        y: 31
                         text: i18n("Feels like %1", root.forecast.current.feels)
                         color: panel.muted; font.pixelSize: panel.smallSize
                     }
@@ -198,7 +199,7 @@ PlasmoidItem {
 
                 Item {
                     width: parent.width
-                    height: root.showHumidity || root.showWind ? 20 : 0
+                    height: root.showHumidity || root.showWind ? 18 : 0
                     visible: height > 0
                     Row {
                         anchors.verticalCenter: parent.verticalCenter
@@ -213,7 +214,7 @@ PlasmoidItem {
                 // Five readable forecast columns, equally sized across the body.
                 Item {
                     width: parent.width
-                    height: 80
+                    height: 73
                     Row {
                         anchors.fill: parent
                         spacing: 0
@@ -222,12 +223,12 @@ PlasmoidItem {
                             delegate: Item {
                                 required property var modelData
                                 width: Math.floor(bodyColumn.width / root.forecastDays)
-                                height: 80
+                                height: 73
                                 Column {
                                     anchors.horizontalCenter: parent.horizontalCenter
-                                    spacing: 3
+                                    spacing: 1
                                     Text { anchors.horizontalCenter: parent.horizontalCenter; text: modelData.day; color: panel.muted; font.pixelSize: panel.smallSize }
-                                    Text { anchors.horizontalCenter: parent.horizontalCenter; text: modelData.icon; font.pixelSize: 23 }
+                                    Text { anchors.horizontalCenter: parent.horizontalCenter; text: modelData.icon; font.pixelSize: 22 }
                                     Text { anchors.horizontalCenter: parent.horizontalCenter; text: modelData.high; color: panel.foreground; font.pixelSize: panel.smallSize + 1; font.bold: true }
                                     Text { anchors.horizontalCenter: parent.horizontalCenter; text: modelData.low; color: panel.muted; font.pixelSize: panel.smallSize }
                                 }
@@ -280,10 +281,11 @@ PlasmoidItem {
                     }
                 }
 
-                // Footer always follows astronomy; no fill-height spacer.
+                // Footer follows astronomy without occupying a phantom row.
+                // At the normal widget size, it fits with slack below it.
                 Item {
                     width: parent.width
-                    height: 23
+                    height: 22
                     Text {
                         anchors.left: parent.left
                         anchors.verticalCenter: parent.verticalCenter
@@ -293,7 +295,7 @@ PlasmoidItem {
                     QQC2.ToolButton {
                         anchors.right: parent.right
                         anchors.verticalCenter: parent.verticalCenter
-                        width: 90; height: 23
+                        width: 90; height: 22
                         text: i18n("Hourly ▴")
                         font.pixelSize: 11
                         onClicked: hourlyPopup.open()
