@@ -1,12 +1,19 @@
 # Changelog
 
-## [1.0.1-rc.1] — Maintenance release candidate
+## [1.0.1-rc.2] — Diagnostic recovery candidate
+
+- Restart the 20-second HTTP timeout when a 400 response triggers the Moon-field compatibility fallback; slow second attempts are no longer timed against the original request.
+- Preserve the actual failure cause in a hover tooltip for the **Stale data** label, and record concise errors in the Plasma Shell journal without location coordinates.
+- Distinguish missing HTTP responses from ordinary HTTP error status codes.
+- Clarify the README's Nobara testing status: layout passed, but a resume recovery failure was observed in the first candidate and needs retesting.
+
+## [1.0.1-rc.1] — First maintenance test candidate
 
 - Recover forecast freshness after suspend/resume using wall-clock timestamps checked once a minute, rather than relying on an uninterrupted half-hour timer.
 - Retry failed forecast requests every two minutes, so network restoration does not require a manual refresh or another full half-hour wait.
 - Recover weather requests stuck in flight during sleep, while retaining the existing 20-second request timeout.
 - Distinguish humidity (💧) from hourly precipitation probability (☔).
-- Document successful KDE Plasma 6 testing on Nobara Linux alongside Bazzite, with no Nobara-specific issues found.
+- Document the initial KDE Plasma 6 layout testing on Nobara alongside Bazzite.
 
 
 ## [1.0.0] — Initial public release

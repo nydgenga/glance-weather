@@ -39,6 +39,16 @@ assert.doesNotMatch(main, /interval: 1800000; repeat: true/);
 assert.match(main, /RefreshPolicy\.requestIsStalled/);
 assert.match(svc, /lastAttemptMs = Date\.now\(\)/);
 assert.match(svc, /lastSuccessMs = Date\.now\(\)/);
+// Moon-field 400 fallback has an independent timeout from the first HTTP call.
+assert.match(svc, /signal requestStarted\(\)/);
+assert.match(svc, /lastAttemptMs = Date\.now\(\);\s*requestStarted\(\)/);
+assert.match(main, /function onRequestStarted\(\) \{ requestTimeout\.restart\(\) \}/);
+assert.match(main, /id: requestTimeout/);
+// Generic status alone is insufficient to diagnose failures after waking.
+assert.match(main, /QQC2\.ToolTip\.text: weatherService\.error/);
+assert.match(svc, /console\.warn\("Glance Weather: " \+ error\)/);
+assert.match(svc, /No HTTP response \(check network or TLS\)/);
+assert.match(main, /acceptedButtons: Qt\.NoButton/);
 // Humidity remains a droplet; hourly precipitation gets a distinguishable umbrella.
 assert.match(main, /text: "💧 " \+ root.forecast.current.humidity/);
 assert.match(main, /: "☔" \+ modelData.rain/);

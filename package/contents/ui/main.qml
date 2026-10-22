@@ -50,7 +50,16 @@ PlasmoidItem {
             refreshWeather();
     }
     Timer { id: settingsDebounce; interval: 450; onTriggered: root.refreshWeather() }
-    Timer { interval: 20000; running: weatherService.busy; onTriggered: weatherService.cancelDueToTimeout() }
+    Timer {
+        id: requestTimeout
+        interval: 20000
+        running: weatherService.busy
+        onTriggered: weatherService.cancelDueToTimeout()
+    }
+    Connections {
+        target: weatherService
+        function onRequestStarted() { requestTimeout.restart() }
+    }
     // Check actual elapsed time, not the number of 30-minute timer ticks: Qt's
     // QML timer can be delayed while the computer sleeps. A failed request is
     // retried within about two minutes of the previous attempt (plus the
@@ -173,6 +182,16 @@ PlasmoidItem {
                         text: weatherService.busy ? i18n("Updating…")
                               : weatherService.error ? i18n("Stale data")
                               : i18n("Updated %1", root.forecast.current.time)
+                        // Show the real failure cause without changing the approved header layout.
+                        QQC2.ToolTip.visible: statusHover.containsMouse && weatherService.error.length > 0
+                        QQC2.ToolTip.delay: 450
+                        QQC2.ToolTip.text: weatherService.error + "\n" + i18n("Automatic retry is enabled.")
+                        MouseArea {
+                            id: statusHover
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            acceptedButtons: Qt.NoButton
+                        }
                     }
                     Text {
                         anchors.left: parent.left

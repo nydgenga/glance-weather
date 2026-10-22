@@ -24,6 +24,8 @@ QtObject {
     property double lastSuccessMs: 0
     property int generation: 0
     property var currentRequest: null
+    // Every actual HTTP request (including a Moon-field fallback) gets its own timeout.
+    signal requestStarted()
 
     function cancelDueToTimeout() {
         if (!busy) return;
@@ -32,12 +34,12 @@ QtObject {
         currentRequest = null;
         busy = false;
         error = "Weather request timed out";
+        console.warn("Glance Weather: " + error);
     }
 
     function refresh(latitude, longitude, temperatureUnit, windUnit) {
         if (!isFinite(latitude) || !isFinite(longitude) || latitude < -90 || latitude > 90
             || longitude < -180 || longitude > 180) return;
-        lastAttemptMs = Date.now();
         generation += 1;
         var token = generation;
         if (currentRequest) {
@@ -66,6 +68,8 @@ QtObject {
             var params = common.concat(["daily=" + daily]);
             var request = new XMLHttpRequest();
             currentRequest = request;
+            lastAttemptMs = Date.now();
+            requestStarted(); // resets the timeout for this individual HTTP request
             request.onreadystatechange = function() {
                 if (token !== generation || request.readyState !== XMLHttpRequest.DONE) return;
                 if (request.status === 400 && includeMoon) {
@@ -76,7 +80,10 @@ QtObject {
                 currentRequest = null;
                 busy = false;
                 if (request.status !== 200) {
-                    error = "Could not fetch weather (HTTP " + request.status + ")";
+                    error = request.status === 0
+                        ? "No HTTP response (check network or TLS)"
+                        : "Could not fetch weather (HTTP " + request.status + ")";
+                    console.warn("Glance Weather: " + error);
                     return;
                 }
                 try {
@@ -89,6 +96,7 @@ QtObject {
                     lastSuccessMs = Date.now();
                 } catch (err) {
                     error = "Weather response error: " + err.message;
+                    console.warn("Glance Weather: " + error);
                 }
             };
             request.onerror = function() {
@@ -96,6 +104,7 @@ QtObject {
                 currentRequest = null;
                 busy = false;
                 error = "Network error while fetching weather";
+                console.warn("Glance Weather: " + error);
             };
             request.open("GET", "https://api.open-meteo.com/v1/forecast?" + params.join("&"));
             request.send();
