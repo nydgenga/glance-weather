@@ -1,35 +1,41 @@
-# Glance Weather 1.0.1 — Maintenance release checklist
+# Glance Weather 1.0.2 — Combined maintenance release checklist
 
-**State:** 1.0.1-rc.2 is an unverified follow-up candidate: the 1.0.1-rc.1 recovery test passed on Bazzite but failed with a stale-data status on Nobara. Version 1.0.0 remains the published stable release until the maintainer tests and approves these changes.
+**State:** 1.0.2-rc.1 is a test candidate, not a published stable release. Public 1.0.0 is unchanged. No 1.0.1 release was published; the successful 1.0.1-rc.2 tests cover recovery behavior only, not the 1.0.2 tooltip additions.
 
-## Automated validation
+## Automated checks
 
-- [x] Existing weather parsing, lunar interpolation, icon stress, and layout tests
-- [x] New sleep, retry, system-clock-adjustment and stalled-request scheduling tests
-- [x] Distinct humidity and precipitation glyphs checked in QML
-- [x] No preset city or private location in configuration defaults
-- [x] Reproducible ZIP and plasmoid archives, correct package version and 0BSD license
+- [x] Existing weather, lunar-phase, stress, layout, release, and refresh tests
+- [x] 1.0.2 tooltip / high-low hour coverage
+- [x] No new API call or refresh-interval change for tooltips
+- [x] Zero preset location, stable plugin ID, 0BSD license
+- [x] Reproducible archives, ZIP integrity, SHA-256 checksums
 
-## Manual Plasma 6 checks (1.0.1-rc.2 still awaiting validation)
+## Proven manual results (during 1.0.1 development)
 
-- [ ] Install over 1.0.0 and restart Plasma Shell; verify saved location and units remain intact.
-- [ ] Confirm the hourly six-hour row uses ☔ for precipitation and the current humidity uses 💧; check for glyph clipping and accidental new scrollbars.
-- [ ] While online, click Refresh and confirm the weather loads normally.
-- [ ] Disconnect the computer from the Internet, click Refresh to produce a failure, reconnect, and verify recovery without pressing Refresh again. Allow roughly 2–3 minutes for a retry plus request time.
-- [ ] If practical, suspend the computer for longer than 30 minutes, resume with networking available, and confirm the forecast updates without a manual refresh (normally within about a minute plus request time).
-- [ ] If a request was pending when suspension occurred, verify the widget does not stay indefinitely stuck on “Updating…”.
-- [x] 1.0.1-rc.1: Initial Bazzite post-suspend recovery worked.
-- [ ] 1.0.1-rc.2: Retest on Nobara; if "Stale data" appears, hover the label for the exact network error. Allow a two-minute retry window before judging whether recovery failed.
-- [ ] 1.0.1-rc.2: Confirm Bazzite remains unaffected.
-- [ ] Maintainer approves 1.0.1 for merge and release.
+- [x] Bazzite: refresh after sleep and ordinary operation work
+- [x] Nobara: reconnect after deliberate offline request without manual refresh
+- [x] Nobara: resume from sleep triggers automatic recovery
+- [x] 1.0.1-rc.2 tested on Bazzite and Nobara; user confirmed correct behavior
 
-## Publishing
+## Remaining Plasma 6 verification (new 1.0.2 behavior)
 
-- [x] Glance Weather 1.0.0 published from the clean `main` branch; superseded development PR closed and branch removed.
-- [ ] Keep 1.0.1 as a separate PR until runtime checks are complete; do not change `main` prematurely.
-- [ ] Replace 1.0.1-rc.2 metadata and filenames with 1.0.1 after approval; rerun tests and package.
-- [ ] Merge the approved change, tag the resulting commit, and publish a GitHub release with the `.plasmoid`, source ZIP and SHA-256 checksums.
+- [ ] Install 1.0.2-rc.1 over development version with `kpackagetool6 --upgrade`, then restart Plasma Shell.
+- [ ] Confirm existing location, units, seven-day and six-hour layout, footer, glyph alignment and lack of unexpected scrollbar.
+- [ ] Hover over the header's `As of` label. Verify both forecast-location data time and computer-local fetch date/time.
+- [ ] After a successful refresh, verify `Last fetched` changes independently of the weather-data timestamp when applicable.
+- [ ] Force a request failure; ensure the existing `Stale data` error is visible in the header hover tooltip.
+- [ ] Hover each of seven day columns and verify approximate high/low hours, including across midnight; check near left/right panel edges.
+- [ ] Confirm tooltips do not intercept clicks, freeze refreshing, overflow in a disruptive way, or add API requests.
+- [ ] Recheck ordinary refresh and sleep/reconnect behavior on Bazzite and Nobara (regression verification).
+- [ ] Maintainer approves stable 1.0.2 after testing.
 
-## Notes
+## Publishing (only after signoff)
 
-QML Timer runs in the Plasma animation/event loop, so the one-minute watchdog is a **best-effort wake check**, not an OS-level network-connectivity or suspend event listener. The recovery logic relies on wall-clock timestamps and retries even if the prior request failed while offline. The fallback request now resets its own timeout and logs errors without printing selected coordinates. Forecast and geocoding services remain Open-Meteo; free hosted API restrictions still apply.
+- [ ] Squash/merge the consolidated 1.0.2 PR into `main`, with no separate 1.0.1 merge.
+- [ ] Bump metadata and tests from 1.0.2-rc.1 to 1.0.2, rebuild, verify archives/checksums.
+- [ ] Tag the merged commit as 1.0.2, upload `.plasmoid`, source ZIP and checksum files, and publish official GitHub release.
+- [ ] Retire completed development branches after merge, without assuming deleted refs erase historical commits.
+
+## Implementation notes
+
+The Qt QML timer is an event-loop watchdog, not an OS-level suspend or connectivity event listener. A one-minute wall-clock freshness check supports prompt recovery on resume; unsuccessful attempts normally retry about every two minutes. Hover-only forecast calculations reuse the existing Open-Meteo hourly temperatures and do not affect usage of its free API. The hourly warmest/coolest times are approximate and not identical to the maxima/minima times of the separately reported daily aggregates.

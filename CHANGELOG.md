@@ -1,27 +1,22 @@
 # Changelog
 
-## [Unreleased 1.0.2 prototype] — Timestamp and forecast-time clarity (staged only)
+## [1.0.2-rc.1] — Combined maintenance and tooltip candidate (unreleased)
 
-- Distinguish the forecast-location weather-data timestamp from the computer-local time of the last successful download.
-- Use a concise "As of" header; show both times and the existing failure details on hover.
-- Find the approximate warmest and coolest hourly periods for each of the seven forecast days; expose them by hovering over the existing forecast columns. Keep daily high/low figures unchanged.
-- No new API fields, requests or refresh-schedule changes. Under review; not part of the 1.0.1 release.
+### Recovery and reliability (validated during 1.0.1 development)
 
-## [1.0.1-rc.2] — Diagnostic recovery candidate
+- Refresh stale forecasts after suspension using wall-clock time, and retry failed network requests without waiting for the next half-hour refresh.
+- Recover stalled in-flight requests after resume. Give each HTTP attempt, including the Moon-field compatibility fallback, an independent timeout.
+- Preserve the prior successful forecast on temporary request failure, show useful error details on hover, and record concise errors in the Plasma user journal without logging location coordinates.
+- Distinguish humidity and hourly precipitation probability using different symbols.
+- Verified reconnection and sleep/wake recovery on both Bazzite and Nobara with the 1.0.1-rc.2 build.
 
-- Restart the 20-second HTTP timeout when a 400 response triggers the Moon-field compatibility fallback; slow second attempts are no longer timed against the original request.
-- Preserve the actual failure cause in a hover tooltip for the **Stale data** label, and record concise errors in the Plasma Shell journal without location coordinates.
-- Distinguish missing HTTP responses from ordinary HTTP error status codes.
-- Document the initial Nobara recovery failure in rc.1 and successful Bazzite/Nobara reconnection and sleep/wake validation of rc.2.
+### Tooltip refinements (awaiting KDE runtime testing)
 
-## [1.0.1-rc.1] — First maintenance test candidate
+- Label the header's Open-Meteo data timestamp as "As of"; hover to distinguish it from the actual successful download time.
+- Show approximate daily warmest and coolest hours when hovering over any seven-day forecast column. Calculate these from already-retrieved hourly temperatures; daily high/low values are unchanged.
+- No extra forecast API requests, additional fields, or faster polling.
 
-- Recover forecast freshness after suspend/resume using wall-clock timestamps checked once a minute, rather than relying on an uninterrupted half-hour timer.
-- Retry failed forecast requests every two minutes, so network restoration does not require a manual refresh or another full half-hour wait.
-- Recover weather requests stuck in flight during sleep, while retaining the existing 20-second request timeout.
-- Distinguish humidity (💧) from hourly precipitation probability (☔).
-- Document the initial KDE Plasma 6 layout testing on Nobara alongside Bazzite.
-
+**Release policy:** Versions 1.0.1-rc.1 and 1.0.1-rc.2 were development test builds only. No stable 1.0.1 release was published; all relevant fixes are incorporated into the 1.0.2 candidate.
 
 ## [1.0.0] — Initial public release
 

@@ -4,7 +4,7 @@ A compact desktop weather and astronomy widget for **KDE Plasma 6**, designed to
 
 ![Glance Weather showing the current weather, six-hour outlook, seven-day forecast, and Sun/Moon times for Dallas, Texas](screenshots/glance-weather.png)
 
-**Release:** 1.0.1-rc.2 — maintenance release candidate. The layout was tested on Bazzite and Nobara with KDE Plasma 6. The 1.0.1-rc.2 recovery checks passed on both systems, including the Nobara sleep/wake test.
+**Published stable release:** 1.0.0. **Current test build:** 1.0.2-rc.1 (not yet released). The 1.0.1 development candidates passed Bazzite and Nobara network-recovery and sleep/wake tests; 1.0.1 will not be published separately. The new 1.0.2 tooltips still need real Plasma testing.
 
 ## Features
 
@@ -16,9 +16,12 @@ A compact desktop weather and astronomy widget for **KDE Plasma 6**, designed to
 - Search by city or postal code, with configurable temperature and wind units
 - Compact KDE Plasma 6 desktop layout
 
-## Experimental 1.0.2 tooltip preview
+## Under test for 1.0.2
 
-This branch also prototypes hover details showing when weather data was last retrieved and the approximate times of each forecast day's high and low temperatures. These improvements are not part of 1.0.1 and remain under review.
+- Hover over the weather data timestamp to see when the forecast was last successfully fetched.
+- Hover over a day in the seven-day outlook to see the approximate times of its warmest and coolest forecast hours.
+
+These hover details use existing weather responses; they do not introduce additional API requests or raise the refresh frequency.
 
 ## Requirements
 
@@ -26,20 +29,20 @@ This branch also prototypes hover details showing when weather data was last ret
 - Working internet connection for forecast and place searches
 - An emoji-capable font (appearance depends on the operating system)
 
-Tested visually on **Bazzite** and **Nobara** Linux. The 1.0.1-rc.2 recovery candidate passed connection-loss/reconnection testing and sleep/wake recovery on Nobara, as well as Bazzite's recovery testing. Other Plasma 6 configurations may render symbols or scaling differently.
+Tested visually on **Bazzite** and **Nobara** Linux. The 1.0.1 recovery fixes passed sleep/wake and network-reconnection testing on both distributions. The two 1.0.2 tooltip improvements have not yet been validated in a running Plasma session. Other Plasma 6 configurations may render symbols or scaling differently.
 
 ## Install and upgrade
 
-Download `glance-weather-1.0.1-rc.2.plasmoid`, open a terminal in the download directory, and run:
+Download `glance-weather-1.0.2-rc.1.plasmoid`, open a terminal in the download directory, and run:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --install ./glance-weather-1.0.1-rc.2.plasmoid
+kpackagetool6 --type Plasma/Applet --install ./glance-weather-1.0.2-rc.1.plasmoid
 ```
 
 To upgrade an existing Glance Weather installation, keeping saved settings:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-1.0.1-rc.2.plasmoid
+kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-1.0.2-rc.1.plasmoid
 systemctl --user restart plasma-plasmashell.service
 ```
 
