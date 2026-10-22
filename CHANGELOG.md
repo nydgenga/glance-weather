@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.1-rc.1] — Maintenance release candidate
+
+- Recover forecast freshness after suspend/resume using wall-clock timestamps checked once a minute, rather than relying on an uninterrupted half-hour timer.
+- Retry failed forecast requests every two minutes, so network restoration does not require a manual refresh or another full half-hour wait.
+- Recover weather requests stuck in flight during sleep, while retaining the existing 20-second request timeout.
+- Distinguish humidity (💧) from hourly precipitation probability (☔).
+- Document successful KDE Plasma 6 testing on Nobara Linux alongside Bazzite, with no Nobara-specific issues found.
+
+
 ## [1.0.0] — Initial public release
 
 - Feature-complete design: current conditions, six-hour outlook, seven-day forecast, permanently visible humidity/wind and Sun/Moon information.

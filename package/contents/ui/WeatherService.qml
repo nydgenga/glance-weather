@@ -18,6 +18,10 @@ QtObject {
         hourly: []
     })
     property string lastLocationKey: ""
+    // Wall-clock timestamps survive a long suspend within the same Plasma session.
+    // Use doubles: epoch milliseconds do not fit in a 32-bit QML int.
+    property double lastAttemptMs: 0
+    property double lastSuccessMs: 0
     property int generation: 0
     property var currentRequest: null
 
@@ -33,6 +37,7 @@ QtObject {
     function refresh(latitude, longitude, temperatureUnit, windUnit) {
         if (!isFinite(latitude) || !isFinite(longitude) || latitude < -90 || latitude > 90
             || longitude < -180 || longitude > 180) return;
+        lastAttemptMs = Date.now();
         generation += 1;
         var token = generation;
         if (currentRequest) {
@@ -81,6 +86,7 @@ QtObject {
                     data = parsed;
                     lastLocationKey = locationKey;
                     hasData = true;
+                    lastSuccessMs = Date.now();
                 } catch (err) {
                     error = "Weather response error: " + err.message;
                 }

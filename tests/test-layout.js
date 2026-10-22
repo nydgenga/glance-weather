@@ -7,7 +7,7 @@ const service = fs.readFileSync('package/contents/ui/WeatherService.qml', 'utf8'
 const settings = fs.readFileSync('package/contents/ui/configGeneral.qml', 'utf8');
 const xml = fs.readFileSync('package/contents/config/main.xml', 'utf8');
 const metadata = JSON.parse(fs.readFileSync('package/metadata.json', 'utf8'));
-assert.equal(metadata.KPlugin.Version, '1.0.0');
+assert.equal(metadata.KPlugin.Version, '1.0.1-rc.1');
 assert.equal(metadata.KPlugin.Id, 'com.github.nydgenga.glanceweather');
 assert.match(main, /height: 416\b/);
 assert.match(main, /implicitHeight: 416\b/);
@@ -18,7 +18,7 @@ assert.match(main, /y: 71\s+text: "💨 " \+ Weather\.wind\(root\.forecast\.curr
 assert.match(main, /height: 102\s+Text/); // roomier 6-hour strip
 assert.match(main, /y: 22\s+text: modelData\.icon/);
 assert.match(main, /y: 48\s+text: modelData\.temperature/);
-assert.match(main, /y: 71\s+text: modelData\.rain/);
+assert.match(main, /y: 71\s+text: modelData\.rain === "—" \? "" : "☔" \+ modelData\.rain/);
 assert.match(main, /text: i18n\("Next six hours"\)/);
 assert.match(main, /model: root\.forecast\.hourly \|\| \[\]/);
 assert.match(main, /root\.forecast\.days\.slice\(0, 7\)/);
@@ -62,7 +62,7 @@ assert.match(main, /x: currentTemperature\.x \+ 1; y: 67/);
 assert.match(main, /height: 85\s+Row/); // seven-day section untouched
 assert.match(main, /y: 22\s+text: modelData\.icon/); // hourly spacing preserved
 assert.match(main, /y: 48\s+text: modelData\.temperature/);
-assert.match(main, /y: 71\s+text: modelData\.rain/);
+assert.match(main, /y: 71\s+text: modelData\.rain === "—" \? "" : "☔" \+ modelData\.rain/);
 assert.equal(budget < 416, true);
 
 // Budget check for normal 416px and previously saved larger 444px instances.

@@ -6,6 +6,7 @@ import org.kde.plasma.plasmoid
 import org.kde.plasma.components as PlasmaComponents
 import org.kde.kirigami as Kirigami
 import "Weather.js" as Weather
+import "RefreshPolicy.js" as RefreshPolicy
 
 PlasmoidItem {
     id: root
@@ -36,9 +37,25 @@ PlasmoidItem {
         if (validLocation)
             weatherService.refresh(latitude, longitude, temperatureUnit, windUnit);
     }
+    function refreshIfDue() {
+        if (!validLocation) return;
+        var now = Date.now();
+        // If a request was suspended in-flight, the original timeout timer may
+        // not have run. Release the stuck request when the watchdog wakes.
+        if (RefreshPolicy.requestIsStalled(now, weatherService.lastAttemptMs, weatherService.busy))
+            weatherService.cancelDueToTimeout();
+        if (RefreshPolicy.shouldRefresh(now, weatherService.lastSuccessMs,
+                                        weatherService.lastAttemptMs,
+                                        weatherService.busy, weatherService.error.length > 0))
+            refreshWeather();
+    }
     Timer { id: settingsDebounce; interval: 450; onTriggered: root.refreshWeather() }
     Timer { interval: 20000; running: weatherService.busy; onTriggered: weatherService.cancelDueToTimeout() }
-    Timer { interval: 1800000; repeat: true; running: root.validLocation; onTriggered: root.refreshWeather() }
+    // Check actual elapsed time, not the number of 30-minute timer ticks: Qt's
+    // QML timer can be delayed while the computer sleeps. A failed request is
+    // retried within about two minutes of the previous attempt (plus the
+    // minute-level watchdog granularity), even if the network was offline.
+    Timer { interval: 60000; repeat: true; running: root.validLocation; onTriggered: root.refreshIfDue() }
     onLatitudeChanged: settingsDebounce.restart()
     onLongitudeChanged: settingsDebounce.restart()
     onTemperatureUnitChanged: settingsDebounce.restart()
@@ -307,7 +324,7 @@ PlasmoidItem {
                                     width: parent.width
                                     horizontalAlignment: Text.AlignHCenter
                                     y: 71
-                                    text: modelData.rain === "—" ? "" : "💧" + modelData.rain
+                                    text: modelData.rain === "—" ? "" : "☔" + modelData.rain
                                     color: panel.muted
                                     font.pixelSize: 11
                                     fontSizeMode: Text.HorizontalFit
