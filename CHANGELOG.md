@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased 1.0.2 prototype] — Timestamp clarity (staged only)
+
+- Distinguish the forecast-location weather-data timestamp from the computer-local time of the last successful download.
+- Use a concise "As of" header; show both times and the existing failure details on hover.
+- No new requests or refresh-schedule changes. Under review; not part of the 1.0.1 release.
+
 ## [1.0.1-rc.2] — Diagnostic recovery candidate
 
 - Restart the 20-second HTTP timeout when a 400 response triggers the Moon-field compatibility fallback; slow second attempts are no longer timed against the original request.

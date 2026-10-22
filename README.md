@@ -13,6 +13,7 @@ A compact desktop weather and astronomy widget for **KDE Plasma 6**, designed to
 - Seven-day forecast, always visible
 - Sunrise/sunset, moonrise/moonset and an eight-stage lunar-phase indicator
 - Weather refresh every 30 minutes, with a one-minute freshness check after sleep and two-minute retry attempts after network failures; manual refresh control
+- **Pending 1.0.2 prototype:** Header shows the forecast data time ("As of …"); hover to see both the provider data time and the local time of the last successful download (still undergoing review)
 - City/postal-code search; Fahrenheit/Celsius and mph/km/h
 - Unicode weather icons and native Plasma appearance; no additional icon assets
 - Desktop layout targeting approximately 450 × 416 logical pixels

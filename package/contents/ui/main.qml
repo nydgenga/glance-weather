@@ -33,6 +33,17 @@ PlasmoidItem {
     WeatherService { id: weatherService }
     Plasmoid.busy: weatherService.busy
 
+    // The forecast timestamp belongs to Open-Meteo's location-local data;
+    // the fetch timestamp belongs to this computer. Don't conflate them.
+    // A successful fetch is already recorded in WeatherService.lastSuccessMs.
+    function timestampTooltip() {
+        if (!weatherService.hasData || weatherService.lastSuccessMs <= 0)
+            return "";
+        return i18n("Weather data as of %1 (forecast location time)", root.forecast.current.time)
+               + "\n" + i18n("Last fetched: %1 (computer time)",
+                                  Qt.formatDateTime(new Date(weatherService.lastSuccessMs)));
+    }
+
     function refreshWeather() {
         if (validLocation)
             weatherService.refresh(latitude, longitude, temperatureUnit, windUnit);
@@ -181,11 +192,17 @@ PlasmoidItem {
                         font.pixelSize: 11
                         text: weatherService.busy ? i18n("Updating…")
                               : weatherService.error ? i18n("Stale data")
-                              : i18n("Updated %1", root.forecast.current.time)
-                        // Show the real failure cause without changing the approved header layout.
-                        QQC2.ToolTip.visible: statusHover.containsMouse && weatherService.error.length > 0
+                              : i18n("As of %1", root.forecast.current.time)
+                        // The header stays compact. On hover distinguish the
+                        // source data time from the last successful HTTP fetch.
+                        // Preserve useful diagnostics when a retry has failed.
+                        QQC2.ToolTip.visible: statusHover.containsMouse && weatherService.hasData
                         QQC2.ToolTip.delay: 450
-                        QQC2.ToolTip.text: weatherService.error + "\n" + i18n("Automatic retry is enabled.")
+                        QQC2.ToolTip.text: weatherService.error.length > 0
+                            ? root.timestampTooltip() + "\n"
+                              + i18n("Error: %1", weatherService.error) + "\n"
+                              + i18n("Automatic retry is enabled.")
+                            : root.timestampTooltip()
                         MouseArea {
                             id: statusHover
                             anchors.fill: parent
