@@ -4,7 +4,7 @@ A compact desktop weather and astronomy widget for **KDE Plasma 6**, designed to
 
 ![Glance Weather showing the current weather, six-hour outlook, seven-day forecast, and Sun/Moon times for Dallas, Texas](screenshots/glance-weather.png)
 
-**Published stable release:** 1.0.0. **Current test build:** 1.0.2-rc.1 (not yet released). The 1.0.1 development candidates passed Bazzite and Nobara network-recovery and sleep/wake tests; 1.0.1 will not be published separately. The new 1.0.2 tooltips still need real Plasma testing.
+**Version:** 1.0.2. Tested on Bazzite and Nobara with KDE Plasma 6. The earlier 1.0.1 test candidates were not published as a stable release; their reliability fixes are included here.
 
 ## Features
 
@@ -16,12 +16,12 @@ A compact desktop weather and astronomy widget for **KDE Plasma 6**, designed to
 - Search by city or postal code, with configurable temperature and wind units
 - Compact KDE Plasma 6 desktop layout
 
-## Under test for 1.0.2
+## New in 1.0.2
 
 - Hover over the weather data timestamp to see when the forecast was last successfully fetched.
 - Hover over a day in the seven-day outlook to see the approximate times of its warmest and coolest forecast hours.
 
-These hover details use existing weather responses; they do not introduce additional API requests or raise the refresh frequency.
+Both tooltips use existing forecast data without additional API requests or more frequent refreshes.
 
 ## Requirements
 
@@ -29,20 +29,20 @@ These hover details use existing weather responses; they do not introduce additi
 - Working internet connection for forecast and place searches
 - An emoji-capable font (appearance depends on the operating system)
 
-Tested visually on **Bazzite** and **Nobara** Linux. The 1.0.1 recovery fixes passed sleep/wake and network-reconnection testing on both distributions. The two 1.0.2 tooltip improvements have not yet been validated in a running Plasma session. Other Plasma 6 configurations may render symbols or scaling differently.
+Tested on **Bazzite** and **Nobara** Linux. The recovery fixes passed suspend/resume and network-reconnection tests; the two new tooltips and their simplified wording were tested on both distributions. Other Plasma 6 configurations may render symbols or scaling differently.
 
 ## Install and upgrade
 
-Download `glance-weather-1.0.2-rc.1.plasmoid`, open a terminal in the download directory, and run:
+Download `glance-weather-1.0.2.plasmoid`, open a terminal in the download directory, and run:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --install ./glance-weather-1.0.2-rc.1.plasmoid
+kpackagetool6 --type Plasma/Applet --install ./glance-weather-1.0.2.plasmoid
 ```
 
 To upgrade an existing Glance Weather installation, keeping saved settings:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-1.0.2-rc.1.plasmoid
+kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-1.0.2.plasmoid
 systemctl --user restart plasma-plasmashell.service
 ```
 
@@ -93,10 +93,11 @@ node tests/test-stress.js
 node tests/test-layout.js
 node tests/test-release.js
 node tests/test-refresh.js
+node tests/test-timestamps.js
 python3 scripts/package.py
 ```
 
-The packaging script produces deterministic `.plasmoid` and source `.zip` archives in `dist/`. See [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) for release verification and [CHANGELOG.md](CHANGELOG.md) for the initial release changes.
+The packaging script produces deterministic `.plasmoid` and source `.zip` archives in `dist/`. See [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) for release verification and [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## License and credits
 

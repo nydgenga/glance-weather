@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.2-rc.1] — Combined maintenance and tooltip candidate (unreleased)
+## [1.0.2] — Maintenance and forecast tooltips (2026-10-22)
 
 ### Recovery and reliability (validated during 1.0.1 development)
 
@@ -10,13 +10,15 @@
 - Distinguish humidity and hourly precipitation probability using different symbols.
 - Verified reconnection and sleep/wake recovery on both Bazzite and Nobara with the 1.0.1-rc.2 build.
 
-### Tooltip refinements (awaiting KDE runtime testing)
+### Tooltip improvements
 
 - Label the header's Open-Meteo data timestamp as "As of"; hover to distinguish it from the actual successful download time.
 - Show approximate daily warmest and coolest hours when hovering over any seven-day forecast column. Calculate these from already-retrieved hourly temperatures; daily high/low values are unchanged.
 - No extra forecast API requests, additional fields, or faster polling.
 
-**Release policy:** Versions 1.0.1-rc.1 and 1.0.1-rc.2 were development test builds only. No stable 1.0.1 release was published; all relevant fixes are incorporated into the 1.0.2 candidate.
+**Release policy:** Versions 1.0.1-rc.1 and 1.0.1-rc.2 were development test builds only. No stable 1.0.1 release was published; its validated fixes are incorporated into 1.0.2.
+
+Both the recovery changes and the tooltip refinements have been tested on Bazzite and Nobara with KDE Plasma 6.
 
 ## [1.0.0] — Initial public release
 
