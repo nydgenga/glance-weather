@@ -12,7 +12,7 @@
 - Restart the 20-second HTTP timeout when a 400 response triggers the Moon-field compatibility fallback; slow second attempts are no longer timed against the original request.
 - Preserve the actual failure cause in a hover tooltip for the **Stale data** label, and record concise errors in the Plasma Shell journal without location coordinates.
 - Distinguish missing HTTP responses from ordinary HTTP error status codes.
-- Clarify the README's Nobara testing status: layout passed, but a resume recovery failure was observed in the first candidate and needs retesting.
+- Document the initial Nobara recovery failure in rc.1 and successful Bazzite/Nobara reconnection and sleep/wake validation of rc.2.
 
 ## [1.0.1-rc.1] — First maintenance test candidate
 
