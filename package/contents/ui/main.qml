@@ -403,7 +403,6 @@ PlasmoidItem {
                                     + "\n" + (modelData.lowTime === "—"
                                         ? i18n("Low %1 — time unavailable", modelData.low)
                                         : i18n("Low %1 — around %2", modelData.low, modelData.lowTime))
-                                    + "\n" + i18n("Approximate hourly forecast, location time")
                                 MouseArea {
                                     id: forecastHover
                                     anchors.fill: parent

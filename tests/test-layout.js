@@ -113,5 +113,7 @@ assert.match(main, /highTime === "—"/);
 assert.match(main, /lowTime === "—"/);
 assert.match(main, /id: forecastHover/);
 assert.match(main, /QQC2\.ToolTip\.visible: forecastHover\.containsMouse/);
-assert.match(main, /Approximate hourly forecast, location time/);
+assert.doesNotMatch(main, /Approximate hourly forecast, location time/);
+assert.match(main, /High %1 — around %2/);
+assert.match(main, /Low %1 — around %2/);
 assert.match(main, /acceptedButtons: Qt\.NoButton/);
