@@ -113,6 +113,37 @@ function wind(v, unit) {
     return typeof v === "number" && isFinite(v) ? Math.round(v) + " " + (unit === "mph" ? "mph" : "km/h") : "—";
 }
 
+// Find the earliest warmest and coolest hourly samples on each forecast date.
+// These are approximate TIMES from existing hourly data, not exact timestamps
+// for the separate daily high/low aggregates. No extra API query is needed.
+function hourlyExtremeTimes(hourly) {
+    var byDate = Object.create(null);
+    if (!hourly || !Array.isArray(hourly.time) || !Array.isArray(hourly.temperature_2m))
+        return byDate;
+    var n = Math.min(hourly.time.length, hourly.temperature_2m.length);
+    for (var i = 0; i < n; i++) {
+        var iso = hourly.time[i];
+        var temp = hourly.temperature_2m[i];
+        if (typeof iso !== "string" || !/^\d{4}-\d\d-\d\dT(?:[01]\d|2[0-3]):[0-5]\d/.test(iso) ||
+            typeof temp !== "number" || !isFinite(temp)) continue;
+        var date = iso.slice(0, 10);
+        if (!byDate[date]) byDate[date] = {
+            high: temp, low: temp, highIso: iso, lowIso: iso
+        };
+        var day = byDate[date];
+        // Strict comparisons preserve the first hour of equal-valued plateaus.
+        if (temp > day.high || (temp === day.high && iso < day.highIso)) {
+            day.high = temp;
+            day.highIso = iso;
+        }
+        if (temp < day.low || (temp === day.low && iso < day.lowIso)) {
+            day.low = temp;
+            day.lowIso = iso;
+        }
+    }
+    return byDate;
+}
+
 function makeForecast(payload) {
     if (!payload || !payload.current || !payload.daily || !Array.isArray(payload.daily.time))
         throw new Error("Incomplete forecast response");
@@ -120,14 +151,18 @@ function makeForecast(payload) {
     var d = payload.daily;
     if (typeof c.temperature_2m !== "number" || !Array.isArray(d.weather_code))
         throw new Error("Missing current temperature or daily conditions");
+    var extrema = hourlyExtremeTimes(payload.hourly);
     var days = [];
     for (var i = 0; i < d.time.length; i++) {
+        var hourlyDay = extrema[d.time[i]];
         days.push({
             date: d.time[i],
             day: dayName(d.time[i]),
             icon: condition(d.weather_code[i], 1).icon,
             high: degrees(d.temperature_2m_max && d.temperature_2m_max[i]),
-            low: degrees(d.temperature_2m_min && d.temperature_2m_min[i])
+            low: degrees(d.temperature_2m_min && d.temperature_2m_min[i]),
+            highTime: hourlyDay ? clock(hourlyDay.highIso) : "—",
+            lowTime: hourlyDay ? clock(hourlyDay.lowIso) : "—"
         });
     }
     var currentTime = c.time || "";

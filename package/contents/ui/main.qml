@@ -392,6 +392,24 @@ PlasmoidItem {
                                 // Avoid overlap into neighboring days if an
                                 // emoji font draws a particularly wide glyph.
                                 clip: true
+                                // Explain when the day's temperatures are predicted
+                                // to peak, using already-downloaded hourly samples.
+                                QQC2.ToolTip.visible: forecastHover.containsMouse
+                                QQC2.ToolTip.delay: 450
+                                QQC2.ToolTip.text:
+                                    (modelData.highTime === "—"
+                                        ? i18n("High %1 — time unavailable", modelData.high)
+                                        : i18n("High %1 — around %2", modelData.high, modelData.highTime))
+                                    + "\n" + (modelData.lowTime === "—"
+                                        ? i18n("Low %1 — time unavailable", modelData.low)
+                                        : i18n("Low %1 — around %2", modelData.low, modelData.lowTime))
+                                    + "\n" + i18n("Approximate hourly forecast, location time")
+                                MouseArea {
+                                    id: forecastHover
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    acceptedButtons: Qt.NoButton
+                                }
                                 Column {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     width: parent.width

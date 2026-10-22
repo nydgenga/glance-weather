@@ -107,3 +107,11 @@ console.log('Weather glyph and temperature fit guards checked');
 
 // Hourly temperatures also fit into their own bounded columns.
 assert.match(main, /width: parent\.width\s+horizontalAlignment: Text\.AlignHCenter\s+y: 48\s+text: modelData\.temperature/);
+
+// Prototype: tooltip only, no changes to the 85px seven-day row geometry.
+assert.match(main, /highTime === "—"/);
+assert.match(main, /lowTime === "—"/);
+assert.match(main, /id: forecastHover/);
+assert.match(main, /QQC2\.ToolTip\.visible: forecastHover\.containsMouse/);
+assert.match(main, /Approximate hourly forecast, location time/);
+assert.match(main, /acceptedButtons: Qt\.NoButton/);

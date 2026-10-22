@@ -1,10 +1,11 @@
 # Changelog
 
-## [Unreleased 1.0.2 prototype] — Timestamp clarity (staged only)
+## [Unreleased 1.0.2 prototype] — Timestamp and forecast-time clarity (staged only)
 
 - Distinguish the forecast-location weather-data timestamp from the computer-local time of the last successful download.
 - Use a concise "As of" header; show both times and the existing failure details on hover.
-- No new requests or refresh-schedule changes. Under review; not part of the 1.0.1 release.
+- Find the approximate warmest and coolest hourly periods for each of the seven forecast days; expose them by hovering over the existing forecast columns. Keep daily high/low figures unchanged.
+- No new API fields, requests or refresh-schedule changes. Under review; not part of the 1.0.1 release.
 
 ## [1.0.1-rc.2] — Diagnostic recovery candidate
 

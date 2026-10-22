@@ -10,7 +10,7 @@ A compact desktop weather and astronomy widget for **KDE Plasma 6**, designed to
 
 - Current conditions with a large weather symbol and temperature; daily high/low, feels-like temperature, humidity and wind alongside
 - Six upcoming hours, with weather symbols, temperatures and precipitation probabilities (☔); humidity uses a separate 💧 icon
-- Seven-day forecast, always visible
+- Seven-day forecast, always visible; the staged 1.0.2 prototype adds high/low timing tooltips calculated from already-downloaded hourly readings (no additional API calls)
 - Sunrise/sunset, moonrise/moonset and an eight-stage lunar-phase indicator
 - Weather refresh every 30 minutes, with a one-minute freshness check after sleep and two-minute retry attempts after network failures; manual refresh control
 - **Pending 1.0.2 prototype:** Header shows the forecast data time ("As of …"); hover to see both the provider data time and the local time of the last successful download (still undergoing review)
