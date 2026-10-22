@@ -112,3 +112,49 @@ assert.strictEqual(reportFull.hourly[5].shortTime, '10 PM');
 delete full.hourly.precipitation_probability;
 assert.strictEqual(weather.makeForecast(full).hourly[0].rain, '—');
 console.log('Weather.js: phase boundaries, time interpolation, cycle sweep, and forecast parsing passed');
+
+// Daily high/low timing prototype: extract from the *existing* 168-hour data.
+// The daily aggregates can differ from individual hourly extrema, so the
+// tooltip deliberately labels these as approximate hours.
+const clockHour = iso => `${iso.slice(0,10)}T${iso.slice(11)}`;
+const sevenDate = ['2026-10-20','2026-10-21','2026-10-22','2026-10-23','2026-10-24','2026-10-25','2026-10-26'];
+const sevenHours = [];
+for (const day of sevenDate)
+    for (let hh = 0; hh < 24; hh++)
+        sevenHours.push(`${day}T${String(hh).padStart(2, '0')}:00`);
+const sevenTemps = sevenHours.map((_, i) => 10 + 10 * Math.sin((i % 24 - 6) * Math.PI / 12));
+const extremeFixture = JSON.parse(JSON.stringify(full));
+extremeFixture.daily.time = sevenDate;
+extremeFixture.hourly.time = sevenHours;
+extremeFixture.hourly.temperature_2m = sevenTemps;
+extremeFixture.hourly.weather_code = sevenHours.map(() => 0);
+extremeFixture.hourly.precipitation_probability = sevenHours.map(() => 0);
+extremeFixture.hourly.is_day = sevenHours.map(() => 1);
+const extremeResult = weather.makeForecast(extremeFixture);
+assert.strictEqual(extremeResult.days.length, 7);
+for (const day of extremeResult.days) {
+    assert.strictEqual(day.highTime, '12:00 PM');
+    assert.strictEqual(day.lowTime, '12:00 AM');
+}
+// Multiple equal maxima: earliest matching hour, independent of array order.
+const ties = weather.hourlyExtremeTimes({
+    time: ['2026-10-20T16:00','2026-10-20T14:00','2026-10-20T05:00',
+           '2026-10-20T06:00','2026-10-21T10:00','invalid'],
+    temperature_2m: [30,30,-2,-2,7,50]
+});
+assert.strictEqual(ties['2026-10-20'].highIso, '2026-10-20T14:00');
+assert.strictEqual(ties['2026-10-20'].lowIso, '2026-10-20T05:00');
+assert.strictEqual(ties['2026-10-21'].highIso, '2026-10-21T10:00');
+assert.strictEqual(Object.keys(ties).length, 2);
+// Missing or malformed samples never create misleading times.
+assert.strictEqual(Object.keys(weather.hourlyExtremeTimes(null)).length, 0);
+const partial = JSON.parse(JSON.stringify(extremeFixture));
+delete partial.hourly;
+assert.strictEqual(weather.makeForecast(partial).days[0].highTime, '—');
+assert.strictEqual(weather.makeForecast(partial).days[0].lowTime, '—');
+const invalidTimes = weather.hourlyExtremeTimes({
+    time: ['2026-10-20T00:00','2026-10-20T01:00','2026-10-20T02:00'],
+    temperature_2m: [null, NaN, Infinity]
+});
+assert.strictEqual(Object.keys(invalidTimes).length, 0);
+console.log('Seven-day hourly high/low timing and missing-data checks passed');

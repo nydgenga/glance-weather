@@ -6,6 +6,7 @@ import org.kde.plasma.plasmoid
 import org.kde.plasma.components as PlasmaComponents
 import org.kde.kirigami as Kirigami
 import "Weather.js" as Weather
+import "RefreshPolicy.js" as RefreshPolicy
 
 PlasmoidItem {
     id: root
@@ -32,13 +33,49 @@ PlasmoidItem {
     WeatherService { id: weatherService }
     Plasmoid.busy: weatherService.busy
 
+    // The forecast timestamp belongs to Open-Meteo's location-local data;
+    // the fetch timestamp belongs to this computer. Don't conflate them.
+    // A successful fetch is already recorded in WeatherService.lastSuccessMs.
+    function timestampTooltip() {
+        if (!weatherService.hasData || weatherService.lastSuccessMs <= 0)
+            return "";
+        return i18n("Weather data as of %1 (forecast location time)", root.forecast.current.time)
+               + "\n" + i18n("Last fetched: %1 (computer time)",
+                                  Qt.formatDateTime(new Date(weatherService.lastSuccessMs)));
+    }
+
     function refreshWeather() {
         if (validLocation)
             weatherService.refresh(latitude, longitude, temperatureUnit, windUnit);
     }
+    function refreshIfDue() {
+        if (!validLocation) return;
+        var now = Date.now();
+        // If a request was suspended in-flight, the original timeout timer may
+        // not have run. Release the stuck request when the watchdog wakes.
+        if (RefreshPolicy.requestIsStalled(now, weatherService.lastAttemptMs, weatherService.busy))
+            weatherService.cancelDueToTimeout();
+        if (RefreshPolicy.shouldRefresh(now, weatherService.lastSuccessMs,
+                                        weatherService.lastAttemptMs,
+                                        weatherService.busy, weatherService.error.length > 0))
+            refreshWeather();
+    }
     Timer { id: settingsDebounce; interval: 450; onTriggered: root.refreshWeather() }
-    Timer { interval: 20000; running: weatherService.busy; onTriggered: weatherService.cancelDueToTimeout() }
-    Timer { interval: 1800000; repeat: true; running: root.validLocation; onTriggered: root.refreshWeather() }
+    Timer {
+        id: requestTimeout
+        interval: 20000
+        running: weatherService.busy
+        onTriggered: weatherService.cancelDueToTimeout()
+    }
+    Connections {
+        target: weatherService
+        function onRequestStarted() { requestTimeout.restart() }
+    }
+    // Check actual elapsed time, not the number of 30-minute timer ticks: Qt's
+    // QML timer can be delayed while the computer sleeps. A failed request is
+    // retried within about two minutes of the previous attempt (plus the
+    // minute-level watchdog granularity), even if the network was offline.
+    Timer { interval: 60000; repeat: true; running: root.validLocation; onTriggered: root.refreshIfDue() }
     onLatitudeChanged: settingsDebounce.restart()
     onLongitudeChanged: settingsDebounce.restart()
     onTemperatureUnitChanged: settingsDebounce.restart()
@@ -155,7 +192,23 @@ PlasmoidItem {
                         font.pixelSize: 11
                         text: weatherService.busy ? i18n("Updating…")
                               : weatherService.error ? i18n("Stale data")
-                              : i18n("Updated %1", root.forecast.current.time)
+                              : i18n("As of %1", root.forecast.current.time)
+                        // The header stays compact. On hover distinguish the
+                        // source data time from the last successful HTTP fetch.
+                        // Preserve useful diagnostics when a retry has failed.
+                        QQC2.ToolTip.visible: statusHover.containsMouse && weatherService.hasData
+                        QQC2.ToolTip.delay: 450
+                        QQC2.ToolTip.text: weatherService.error.length > 0
+                            ? root.timestampTooltip() + "\n"
+                              + i18n("Error: %1", weatherService.error) + "\n"
+                              + i18n("Automatic retry is enabled.")
+                            : root.timestampTooltip()
+                        MouseArea {
+                            id: statusHover
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            acceptedButtons: Qt.NoButton
+                        }
                     }
                     Text {
                         anchors.left: parent.left
@@ -307,7 +360,7 @@ PlasmoidItem {
                                     width: parent.width
                                     horizontalAlignment: Text.AlignHCenter
                                     y: 71
-                                    text: modelData.rain === "—" ? "" : "💧" + modelData.rain
+                                    text: modelData.rain === "—" ? "" : "☔" + modelData.rain
                                     color: panel.muted
                                     font.pixelSize: 11
                                     fontSizeMode: Text.HorizontalFit
@@ -339,6 +392,23 @@ PlasmoidItem {
                                 // Avoid overlap into neighboring days if an
                                 // emoji font draws a particularly wide glyph.
                                 clip: true
+                                // Explain when the day's temperatures are predicted
+                                // to peak, using already-downloaded hourly samples.
+                                QQC2.ToolTip.visible: forecastHover.containsMouse
+                                QQC2.ToolTip.delay: 450
+                                QQC2.ToolTip.text:
+                                    (modelData.highTime === "—"
+                                        ? i18n("High %1 — time unavailable", modelData.high)
+                                        : i18n("High %1 — around %2", modelData.high, modelData.highTime))
+                                    + "\n" + (modelData.lowTime === "—"
+                                        ? i18n("Low %1 — time unavailable", modelData.low)
+                                        : i18n("Low %1 — around %2", modelData.low, modelData.lowTime))
+                                MouseArea {
+                                    id: forecastHover
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    acceptedButtons: Qt.NoButton
+                                }
                                 Column {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     width: parent.width

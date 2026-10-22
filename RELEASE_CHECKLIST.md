@@ -1,35 +1,37 @@
-# Glance Weather 1.0 — Release checklist
+# Glance Weather 1.0.2 — Release verification
 
-**State:** Glance Weather 1.0.0 approved for release following successful Bazzite visual testing. GitHub tag/release publication is tracked separately.
+**Release decision:** Maintainer approved shipping 1.0.2 after testing the tooltips on Bazzite and Nobara. Stable 1.0.1 was intentionally skipped; both 1.0.1 development candidates remain unreleased.
 
-## Automated validation
+## Confirmed automated verification
 
-- [x] Node weather-parsing tests
-- [x] Synthetic lunar interpolation and phase-boundary tests
-- [x] All recognized weather-code icons (day/night) and extreme-value stress fixtures
-- [x] Static QML layout and configuration tests
-- [x] Package content and version/license checks
-- [x] No hardcoded default city, postal code or user screenshot in the release package
-- [x] Reproducible `.plasmoid` and source archive generation
+- [x] Weather, lunar-phase, stress, layout, release, refresh, and timestamp test suites pass
+- [x] No additional HTTP requests or higher forecast refresh frequency for tooltips
+- [x] Plugin ID is unchanged; new installations ship without a preset city or coordinates
+- [x] 0BSD software license, Open-Meteo attribution, and example screenshot checked
+- [x] Reproducible `.plasmoid` and source archives and SHA-256 manifest verified
 
-## Manual validation on KDE Plasma 6
+## Manual tests reported by maintainer
 
-- [x] Installed the 1.0.0-rc.1 candidate on Bazzite; original weather location remained in place and the layout rendered successfully.
-- [x] Confirmed current temperature, six-hour row, seven-day row, Sun/Moon area, and centered footer render without overlaps or unwanted scrollbars (user screenshot).
-- [ ] Change temperature units to Celsius and wind units to km/h; confirm displayed values update.
-- [ ] Search for a **neutral public demo city** and confirm that the widget title, times and forecasts update.
-- [ ] Optionally try a different emoji font or high DPI setting, if available.
-- [ ] Verify a brand-new instance with no saved location asks for a location rather than showing a previously used one.
-- [x] Project maintainer approved proceeding with the first stable release.
+- [x] Bazzite: widget layout and forecast operation
+- [x] Nobara: widget layout and forecast operation
+- [x] Automatic recovery after sleep on Bazzite and Nobara, using 1.0.1-rc.2
+- [x] Network-disconnection and automatic reconnection test on Nobara, using 1.0.1-rc.2
+- [x] Weather-data/fetch-time tooltip in 1.0.2 candidate
+- [x] Seven-day high/low-hour tooltip in 1.0.2 candidate
+- [x] Simplified tooltip text accepted and tested on Bazzite and Nobara
 
-## Privacy and publication decisions
+Tests reported as successful do not imply every edge case or device was tested.
 
-- [x] Identified the previous public draft PR and branch as historical sources containing an old location example. The clean release branch starts from `main` and does not inherit that history. **Old refs and cached copies may remain accessible**.
-- [ ] Close development PR #1 and, if desired, manually delete its branch `prototype/v0.1.1` after ensuring no more development changes are needed. Old GitHub caches and links may still expose past commits.
-- [ ] If publishing screenshots, set a neutral city before capturing them and inspect all desktop corners for personal information.
-- [ ] Merge approved clean release PR #2, then create Git tag `v1.0.0` and publish a GitHub release with the installable package, source archive, and checksums.
-- [ ] Only after publication, optionally consider KDE Store distribution.
+## GitHub publication
 
-## External services
+- [ ] Squash-merge the finalized 1.0.2 changes from PR #4 into `main`
+- [ ] Create the **1.0.2** tag on the merged `main` commit (no `v` prefix)
+- [ ] Publish a GitHub Release named **Glance Weather 1.0.2**
+- [ ] Attach `glance-weather-1.0.2.plasmoid`, `glance-weather-1.0.2-source.zip`, and `glance-weather-1.0.2-sha256.txt`
+- [ ] Verify published downloads and checksums
 
-Forecasts and geocoding rely on Open-Meteo. The widget displays attribution and uses the hosted **free API for noncommercial use**; public documentation also notes CC BY 4.0 weather data terms. Check the provider's current terms before changing distribution or monetization.
+The source, binaries, and hashes must match the same finalized commit. If the publication is done outside this workspace, check these items after publishing.
+
+## Implementation notes
+
+A one-minute wall-clock watchdog checks for overdue refreshes after resume, while unsuccessful forecast attempts normally retry approximately every two minutes. Hover-only forecast calculations reuse existing Open-Meteo hourly temperatures. The warmest/coolest hours are estimates rather than exact extrema times of the separate daily aggregates.

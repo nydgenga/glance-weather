@@ -18,8 +18,14 @@ QtObject {
         hourly: []
     })
     property string lastLocationKey: ""
+    // Wall-clock timestamps survive a long suspend within the same Plasma session.
+    // Use doubles: epoch milliseconds do not fit in a 32-bit QML int.
+    property double lastAttemptMs: 0
+    property double lastSuccessMs: 0
     property int generation: 0
     property var currentRequest: null
+    // Every actual HTTP request (including a Moon-field fallback) gets its own timeout.
+    signal requestStarted()
 
     function cancelDueToTimeout() {
         if (!busy) return;
@@ -28,6 +34,7 @@ QtObject {
         currentRequest = null;
         busy = false;
         error = "Weather request timed out";
+        console.warn("Glance Weather: " + error);
     }
 
     function refresh(latitude, longitude, temperatureUnit, windUnit) {
@@ -61,6 +68,8 @@ QtObject {
             var params = common.concat(["daily=" + daily]);
             var request = new XMLHttpRequest();
             currentRequest = request;
+            lastAttemptMs = Date.now();
+            requestStarted(); // resets the timeout for this individual HTTP request
             request.onreadystatechange = function() {
                 if (token !== generation || request.readyState !== XMLHttpRequest.DONE) return;
                 if (request.status === 400 && includeMoon) {
@@ -71,7 +80,10 @@ QtObject {
                 currentRequest = null;
                 busy = false;
                 if (request.status !== 200) {
-                    error = "Could not fetch weather (HTTP " + request.status + ")";
+                    error = request.status === 0
+                        ? "No HTTP response (check network or TLS)"
+                        : "Could not fetch weather (HTTP " + request.status + ")";
+                    console.warn("Glance Weather: " + error);
                     return;
                 }
                 try {
@@ -81,8 +93,10 @@ QtObject {
                     data = parsed;
                     lastLocationKey = locationKey;
                     hasData = true;
+                    lastSuccessMs = Date.now();
                 } catch (err) {
                     error = "Weather response error: " + err.message;
+                    console.warn("Glance Weather: " + error);
                 }
             };
             request.onerror = function() {
@@ -90,6 +104,7 @@ QtObject {
                 currentRequest = null;
                 busy = false;
                 error = "Network error while fetching weather";
+                console.warn("Glance Weather: " + error);
             };
             request.open("GET", "https://api.open-meteo.com/v1/forecast?" + params.join("&"));
             request.send();

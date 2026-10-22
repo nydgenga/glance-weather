@@ -4,18 +4,24 @@ A compact desktop weather and astronomy widget for **KDE Plasma 6**, designed to
 
 ![Glance Weather showing the current weather, six-hour outlook, seven-day forecast, and Sun/Moon times for Dallas, Texas](screenshots/glance-weather.png)
 
-**Release:** 1.0.0 — initial stable version. The layout was tested on Bazzite with KDE Plasma 6.
+**Version:** 1.0.2. Tested on Bazzite and Nobara with KDE Plasma 6. The earlier 1.0.1 test candidates were not published as a stable release; their reliability fixes are included here.
 
 ## Features
 
-- Current conditions with a large weather symbol and temperature; daily high/low, feels-like temperature, humidity and wind alongside
-- Six upcoming hours, with weather symbols, temperatures and precipitation probabilities
-- Seven-day forecast, always visible
-- Sunrise/sunset, moonrise/moonset and an eight-stage lunar-phase indicator
-- Automatic weather refresh every 30 minutes and manual refresh control
-- City/postal-code search; Fahrenheit/Celsius and mph/km/h
-- Unicode weather icons and native Plasma appearance; no additional icon assets
-- Desktop layout targeting approximately 450 × 416 logical pixels
+- Current weather, including temperature, feels-like temperature, humidity, wind, and today's high/low
+- Six-hour outlook with conditions, temperatures, and precipitation probabilities
+- Seven-day forecast with daily high and low temperatures
+- Sunrise, sunset, moonrise, moonset, and Moon-phase information
+- Automatic weather updates and manual refresh
+- Search by city or postal code, with configurable temperature and wind units
+- Compact KDE Plasma 6 desktop layout
+
+## New in 1.0.2
+
+- Hover over the weather data timestamp to see when the forecast was last successfully fetched.
+- Hover over a day in the seven-day outlook to see the approximate times of its warmest and coolest forecast hours.
+
+Both tooltips use existing forecast data without additional API requests or more frequent refreshes.
 
 ## Requirements
 
@@ -23,20 +29,20 @@ A compact desktop weather and astronomy widget for **KDE Plasma 6**, designed to
 - Working internet connection for forecast and place searches
 - An emoji-capable font (appearance depends on the operating system)
 
-Tested visually on Bazzite Linux; other Plasma 6 configurations may render symbols or scaling differently.
+Tested on **Bazzite** and **Nobara** Linux. The recovery fixes passed suspend/resume and network-reconnection tests; the two new tooltips and their simplified wording were tested on both distributions. Other Plasma 6 configurations may render symbols or scaling differently.
 
 ## Install and upgrade
 
-Download `glance-weather-1.0.0.plasmoid`, open a terminal in the download directory, and run:
+Download `glance-weather-1.0.2.plasmoid`, open a terminal in the download directory, and run:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --install ./glance-weather-1.0.0.plasmoid
+kpackagetool6 --type Plasma/Applet --install ./glance-weather-1.0.2.plasmoid
 ```
 
 To upgrade an existing Glance Weather installation, keeping saved settings:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-1.0.0.plasmoid
+kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-1.0.2.plasmoid
 systemctl --user restart plasma-plasmashell.service
 ```
 
@@ -72,7 +78,7 @@ Moon phases are derived from Open-Meteo's daily numerical phase observations sam
 
 - Plasma may retain an old desktop widget's saved size after a package update. The intended size is around 450 × 416 logical pixels; manually resize in Edit Mode when necessary.
 - When deliberately resized much smaller, the content may scroll rather than become unreadably small.
-- Forecasts require network access. The in-memory last successful forecast can remain visible after a temporary request failure, but is lost after Plasma restarts.
+- Forecasts require network access. A one-minute watchdog detects overdue refreshes after sleep and retries failed requests approximately every two minutes (plus up to one minute to check). If a retained forecast shows **Stale data**, hover over that label to read the actual request error; the Plasma user journal also records messages prefixed `Glance Weather:`. The in-memory last successful forecast can remain visible after a temporary request failure, but is lost after Plasma restarts.
 - Appearance of Unicode emoji depends on installed fonts, theme and scaling; unusual values fit or clip rather than overlap adjacent forecasts.
 - A location's local time is used for forecast hours and astronomical times, which can differ from the computer's timezone.
 - Automated parser, layout-structure, numeric-stress and package checks supplement real-world KDE Plasma testing.
@@ -86,10 +92,12 @@ node tests/test-weather.js
 node tests/test-stress.js
 node tests/test-layout.js
 node tests/test-release.js
+node tests/test-refresh.js
+node tests/test-timestamps.js
 python3 scripts/package.py
 ```
 
-The packaging script produces deterministic `.plasmoid` and source `.zip` archives in `dist/`. See [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) for release verification and [CHANGELOG.md](CHANGELOG.md) for the initial release changes.
+The packaging script produces deterministic `.plasmoid` and source `.zip` archives in `dist/`. See [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) for release verification and [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## License and credits
 
