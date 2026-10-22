@@ -4,18 +4,17 @@ A compact desktop weather and astronomy widget for **KDE Plasma 6**, designed to
 
 ![Glance Weather showing the current weather, six-hour outlook, seven-day forecast, and Sun/Moon times for Dallas, Texas](screenshots/glance-weather.png)
 
-**Release:** 1.0.1-rc.2 — maintenance release candidate. The layout was tested on Bazzite and Nobara with KDE Plasma 6. Resume/network recovery passed an initial Bazzite test but encountered a failed request on Nobara, so further recovery testing is required.
+**Release:** 1.0.1-rc.2 — maintenance release candidate. The layout was tested on Bazzite and Nobara with KDE Plasma 6. The 1.0.1-rc.2 recovery checks passed on both systems, including the Nobara sleep/wake test.
 
 ## Features
 
-- Current conditions with a large weather symbol and temperature; daily high/low, feels-like temperature, humidity and wind alongside
-- Six upcoming hours, with weather symbols, temperatures and precipitation probabilities (☔); humidity uses a separate 💧 icon
-- Seven-day forecast, always visible
-- Sunrise/sunset, moonrise/moonset and an eight-stage lunar-phase indicator
-- Weather refresh every 30 minutes, with a one-minute freshness check after sleep and two-minute retry attempts after network failures; manual refresh control
-- City/postal-code search; Fahrenheit/Celsius and mph/km/h
-- Unicode weather icons and native Plasma appearance; no additional icon assets
-- Desktop layout targeting approximately 450 × 416 logical pixels
+- Current weather, including temperature, feels-like temperature, humidity, wind, and today's high/low
+- Six-hour outlook with conditions, temperatures, and precipitation probabilities
+- Seven-day forecast with daily high and low temperatures
+- Sunrise, sunset, moonrise, moonset, and Moon-phase information
+- Automatic weather updates and manual refresh
+- Search by city or postal code, with configurable temperature and wind units
+- Compact KDE Plasma 6 desktop layout
 
 ## Requirements
 
@@ -23,7 +22,7 @@ A compact desktop weather and astronomy widget for **KDE Plasma 6**, designed to
 - Working internet connection for forecast and place searches
 - An emoji-capable font (appearance depends on the operating system)
 
-Tested visually on **Bazzite** and **Nobara** Linux. The original recovery candidate worked on Bazzite but showed a stale-data error on Nobara; this diagnostic update is undergoing additional testing. Other Plasma 6 configurations may render symbols or scaling differently.
+Tested visually on **Bazzite** and **Nobara** Linux. The 1.0.1-rc.2 recovery candidate passed connection-loss/reconnection testing and sleep/wake recovery on Nobara, as well as Bazzite's recovery testing. Other Plasma 6 configurations may render symbols or scaling differently.
 
 ## Install and upgrade
 
