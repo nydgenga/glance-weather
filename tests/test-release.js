@@ -11,7 +11,7 @@ const settings = p('package/contents/ui/configGeneral.qml');
 const readme = p('README.md');
 const license = p('LICENSE');
 assert.equal(metadata.KPlugin.Id, 'com.github.nydgenga.glanceweather');
-assert.equal(metadata.KPlugin.Version, '1.0.2');
+assert.equal(metadata.KPlugin.Version, '1.0.3-dev.1');
 assert.equal(metadata.KPlugin.License, '0BSD');
 assert.equal(metadata['X-Plasma-API-Minimum-Version'], '6.0');
 assert.equal(metadata.KPackageStructure, 'Plasma/Applet');

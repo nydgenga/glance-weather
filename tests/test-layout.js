@@ -7,7 +7,7 @@ const service = fs.readFileSync('package/contents/ui/WeatherService.qml', 'utf8'
 const settings = fs.readFileSync('package/contents/ui/configGeneral.qml', 'utf8');
 const xml = fs.readFileSync('package/contents/config/main.xml', 'utf8');
 const metadata = JSON.parse(fs.readFileSync('package/metadata.json', 'utf8'));
-assert.equal(metadata.KPlugin.Version, '1.0.2');
+assert.equal(metadata.KPlugin.Version, '1.0.3-dev.1');
 assert.equal(metadata.KPlugin.Id, 'com.github.nydgenga.glanceweather');
 assert.match(main, /height: 416\b/);
 assert.match(main, /implicitHeight: 416\b/);

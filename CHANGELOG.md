@@ -1,5 +1,18 @@
 # Changelog
 
+## [Unreleased 1.0.3-dev.1] — Partial forecast response handling
+
+### Reliability
+- Keep valid current conditions and daily forecasts when optional hourly arrays are missing or truncated; show unavailable hourly values instead of discarding the full response.
+- Skip malformed hourly timestamps. Continue deriving daily high/low times only from valid hourly temperature samples.
+- Add regression tests for absent, malformed, and partial hourly fields; preserve the existing requirement for usable core weather data.
+
+### Development infrastructure
+- Trial GitHub Actions checks for Node tests, JavaScript syntax, reproducible package build, and checksum verification. These CI checks supplement, not replace, Bazzite/Nobara desktop testing.
+
+**Status:** Development-only. No 1.0.3 stable release or Plasma runtime test has occurred yet.
+
+
 ## [1.0.2] — Maintenance and forecast tooltips (2026-10-22)
 
 ### Recovery and reliability (validated during 1.0.1 development)

@@ -169,19 +169,29 @@ function makeForecast(payload) {
     var hourly = [];
     if (payload.hourly && Array.isArray(payload.hourly.time)) {
         var hourlyData = payload.hourly;
+        // Optional or truncated arrays must not invalidate an otherwise useful
+        // current/daily forecast. Never fabricate a temperature or condition.
+        var temps = Array.isArray(hourlyData.temperature_2m) ? hourlyData.temperature_2m : [];
+        var codes = Array.isArray(hourlyData.weather_code) ? hourlyData.weather_code : [];
+        var dayFlags = Array.isArray(hourlyData.is_day) ? hourlyData.is_day : [];
+        var rainChances = Array.isArray(hourlyData.precipitation_probability)
+            ? hourlyData.precipitation_probability : [];
         for (var j = 0; j < hourlyData.time.length; j++) {
-            // The API times are in the location's timezone; lexical ISO
-            // comparisons preserve chronological ordering for this interval.
-            if (hourlyData.time[j] <= currentTime) continue;
+            // Open-Meteo provides location-local ISO times. Reject malformed
+            // hour slots rather than treating missing values as valid dates.
+            var iso = hourlyData.time[j];
+            if (typeof iso !== "string" ||
+                !/^\d{4}-\d\d-\d\dT(?:[01]\d|2[0-3]):[0-5]\d/.test(iso) ||
+                iso <= currentTime) continue;
             if (hourly.length === 6) break;
+            var rain = rainChances[j];
             hourly.push({
-                time: clock(hourlyData.time[j]),
-                shortTime: hourLabel(hourlyData.time[j]),
-                icon: condition(hourlyData.weather_code[j], hourlyData.is_day ? hourlyData.is_day[j] : 1).icon,
-                temperature: degrees(hourlyData.temperature_2m[j]),
-                rain: hourlyData.precipitation_probability &&
-                      typeof hourlyData.precipitation_probability[j] === "number"
-                    ? Math.round(hourlyData.precipitation_probability[j]) + "%" : "—"
+                time: clock(iso),
+                shortTime: hourLabel(iso),
+                icon: condition(codes[j], dayFlags[j] === 0 ? 0 : 1).icon,
+                temperature: degrees(temps[j]),
+                rain: typeof rain === "number" && isFinite(rain)
+                    ? Math.round(rain) + "%" : "—"
             });
         }
     }

@@ -4,7 +4,7 @@ A compact desktop weather and astronomy widget for **KDE Plasma 6**, designed to
 
 ![Glance Weather showing the current weather, six-hour outlook, seven-day forecast, and Sun/Moon times for Dallas, Texas](screenshots/glance-weather.png)
 
-**Version:** 1.0.2. Tested on Bazzite and Nobara with KDE Plasma 6. The earlier 1.0.1 test candidates were not published as a stable release; their reliability fixes are included here.
+**Published stable version:** 1.0.2 (tested on Bazzite and Nobara with KDE Plasma 6). **This branch:** 1.0.3-dev.1, an unreleased parser-reliability test build. The 1.0.3 changes still require testing in KDE Plasma.
 
 ## Features
 
@@ -23,6 +23,11 @@ A compact desktop weather and astronomy widget for **KDE Plasma 6**, designed to
 
 Both tooltips use existing forecast data without additional API requests or more frequent refreshes.
 
+## Under development for 1.0.3
+
+- Preserve valid current and seven-day forecasts if optional hourly API data is incomplete. Unavailable hours show placeholders rather than invalidating the entire response.
+- Add automated regression checks in GitHub Actions. These checks do not change the widget's runtime or network usage.
+
 ## Requirements
 
 - KDE Plasma **6** (the package is not intended for Plasma 5)
@@ -33,16 +38,16 @@ Tested on **Bazzite** and **Nobara** Linux. The recovery fixes passed suspend/re
 
 ## Install and upgrade
 
-Download `glance-weather-1.0.2.plasmoid`, open a terminal in the download directory, and run:
+For the 1.0.3 development candidate, download `glance-weather-1.0.3-dev.1.plasmoid`, open a terminal in the download directory, and run:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --install ./glance-weather-1.0.2.plasmoid
+kpackagetool6 --type Plasma/Applet --install ./glance-weather-1.0.3-dev.1.plasmoid
 ```
 
 To upgrade an existing Glance Weather installation, keeping saved settings:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-1.0.2.plasmoid
+kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-1.0.3-dev.1.plasmoid
 systemctl --user restart plasma-plasmashell.service
 ```
 
