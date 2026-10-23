@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased 1.0.3-dev.3] — Error-aware weather API retries
+
+### Reliability
+- Back off repeated HTTP 429 responses starting at 10 minutes and 5xx responses starting at 4 minutes; exponential intervals are capped at 30 minutes.
+- Preserve the two-minute retry after network errors, timeouts and ordinary failures, as well as manual refresh and the 30-minute healthy refresh cadence.
+- Reset backoff after a successful weather fetch, a different selected location or a network failure. Continue recovering on sleep/wake using the wall-clock watchdog.
+- Add unit and simulated-request regression tests for retry scheduling, timeout and recovery behavior.
+
+**Status:** Unreleased; desktop testing of dev.3 remains outstanding.
+
+
 ## [Unreleased 1.0.3-dev.2] — Location search timeout and request cleanup
 
 ### Reliability

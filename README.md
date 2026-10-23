@@ -4,7 +4,7 @@ A compact desktop weather and astronomy widget for **KDE Plasma 6**, designed to
 
 ![Glance Weather showing the current weather, six-hour outlook, seven-day forecast, and Sun/Moon times for Dallas, Texas](screenshots/glance-weather.png)
 
-**Published stable version:** 1.0.2 (tested on Bazzite and Nobara with KDE Plasma 6). **This branch:** 1.0.3-dev.2, an unreleased reliability test build. The 1.0.3 changes still require testing in KDE Plasma.
+**Published stable version:** 1.0.2 (tested on Bazzite and Nobara with KDE Plasma 6). **This branch:** 1.0.3-dev.3, an unreleased reliability test build. The 1.0.3 changes still require testing in KDE Plasma.
 
 ## Features
 
@@ -27,6 +27,7 @@ Both tooltips use existing forecast data without additional API requests or more
 
 - Preserve valid current and seven-day forecasts if optional hourly API data is incomplete. Unavailable hours show placeholders rather than invalidating the entire response.
 - Time out stalled location searches after 15 seconds, cleanly abort cancelled searches, and ignore outdated responses.
+- Back off repeated HTTP 429 rate-limit and 5xx provider failures (up to 30 minutes); keep rapid network-recovery retries, manual refresh, and the 30-minute normal refresh schedule.
 - Add automated regression checks in GitHub Actions. These checks do not change the widget's forecast API usage.
 
 ## Requirements
@@ -39,16 +40,16 @@ Tested on **Bazzite** and **Nobara** Linux. The recovery fixes passed suspend/re
 
 ## Install and upgrade
 
-For the 1.0.3 development candidate, download `glance-weather-1.0.3-dev.2.plasmoid`, open a terminal in the download directory, and run:
+For the 1.0.3 development candidate, download `glance-weather-1.0.3-dev.3.plasmoid`, open a terminal in the download directory, and run:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --install ./glance-weather-1.0.3-dev.2.plasmoid
+kpackagetool6 --type Plasma/Applet --install ./glance-weather-1.0.3-dev.3.plasmoid
 ```
 
 To upgrade an existing Glance Weather installation, keeping saved settings:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-1.0.3-dev.2.plasmoid
+kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-1.0.3-dev.3.plasmoid
 systemctl --user restart plasma-plasmashell.service
 ```
 
@@ -84,7 +85,7 @@ Moon phases are derived from Open-Meteo's daily numerical phase observations sam
 
 - Plasma may retain an old desktop widget's saved size after a package update. The intended size is around 450 × 416 logical pixels; manually resize in Edit Mode when necessary.
 - When deliberately resized much smaller, the content may scroll rather than become unreadably small.
-- Forecasts require network access. A one-minute watchdog detects overdue refreshes after sleep and retries failed requests approximately every two minutes (plus up to one minute to check). If a retained forecast shows **Stale data**, hover over that label to read the actual request error; the Plasma user journal also records messages prefixed `Glance Weather:`. The in-memory last successful forecast can remain visible after a temporary request failure, but is lost after Plasma restarts.
+- Forecasts require network access. A one-minute watchdog detects overdue refreshes after sleep. Network failures retry approximately every two minutes (plus up to one minute for the next check), while HTTP 429 rate limits and 5xx server failures use progressively longer delays capped at 30 minutes. Manual Refresh remains available. If a retained forecast shows **Stale data**, hover over that label to read the actual request error; the Plasma user journal also records messages prefixed `Glance Weather:`. The in-memory last successful forecast can remain visible after a temporary request failure, but is lost after Plasma restarts.
 - Appearance of Unicode emoji depends on installed fonts, theme and scaling; unusual values fit or clip rather than overlap adjacent forecasts.
 - A location's local time is used for forecast hours and astronomical times, which can differ from the computer's timezone.
 - Automated parser, layout-structure, numeric-stress and package checks supplement real-world KDE Plasma testing.

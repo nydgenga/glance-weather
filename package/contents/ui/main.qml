@@ -57,7 +57,8 @@ PlasmoidItem {
             weatherService.cancelDueToTimeout();
         if (RefreshPolicy.shouldRefresh(now, weatherService.lastSuccessMs,
                                         weatherService.lastAttemptMs,
-                                        weatherService.busy, weatherService.error.length > 0))
+                                        weatherService.busy, weatherService.error.length > 0,
+                                        weatherService.retryIntervalMs))
             refreshWeather();
     }
     Timer { id: settingsDebounce; interval: 450; onTriggered: root.refreshWeather() }
@@ -75,6 +76,8 @@ PlasmoidItem {
     // QML timer can be delayed while the computer sleeps. A failed request is
     // retried within about two minutes of the previous attempt (plus the
     // minute-level watchdog granularity), even if the network was offline.
+    // HTTP 429/5xx failures use a bounded, longer interval; the watchdog
+    // checks elapsed wall-clock time after suspend for both paths.
     Timer { interval: 60000; repeat: true; running: root.validLocation; onTriggered: root.refreshIfDue() }
     onLatitudeChanged: settingsDebounce.restart()
     onLongitudeChanged: settingsDebounce.restart()

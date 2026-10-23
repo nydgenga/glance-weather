@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: 0BSD
 import QtQuick
 import "Weather.js" as Weather
+import "RefreshPolicy.js" as RefreshPolicy
 
 QtObject {
     id: service
@@ -24,6 +25,21 @@ QtObject {
     property double lastSuccessMs: 0
     property int generation: 0
     property var currentRequest: null
+    // Only consecutive HTTP 429/5xx responses extend automatic retry delays.
+    // Network failures keep the fast recovery cadence from version 1.0.2.
+    property int serverFailureCount: 0
+    property int retryIntervalMs: RefreshPolicy.RETRY_INTERVAL_MS
+    property string lastRequestedLocationKey: ""
+
+    function setRetryForStatus(status) {
+        if (status === 429 || (status >= 500 && status < 600)) {
+            serverFailureCount = Math.min(serverFailureCount + 1, 5);
+            retryIntervalMs = RefreshPolicy.httpRetryIntervalMs(status, serverFailureCount);
+        } else {
+            serverFailureCount = 0;
+            retryIntervalMs = RefreshPolicy.RETRY_INTERVAL_MS;
+        }
+    }
     // Every actual HTTP request (including a Moon-field fallback) gets its own timeout.
     signal requestStarted()
 
@@ -33,6 +49,7 @@ QtObject {
         if (currentRequest) currentRequest.abort();
         currentRequest = null;
         busy = false;
+        setRetryForStatus(0);
         error = "Weather request timed out";
         console.warn("Glance Weather: " + error);
     }
@@ -47,6 +64,11 @@ QtObject {
             currentRequest = null;
         }
         var locationKey = latitude + "," + longitude + "," + temperatureUnit + "," + windUnit;
+        // A cooldown from an old location must never penalize a new selection.
+        if (locationKey !== lastRequestedLocationKey) {
+            setRetryForStatus(0);
+            lastRequestedLocationKey = locationKey;
+        }
         // Prevent weather for a previous city from appearing under the new city's name.
         if (locationKey !== lastLocationKey) hasData = false;
         busy = true;
@@ -80,6 +102,7 @@ QtObject {
                 currentRequest = null;
                 busy = false;
                 if (request.status !== 200) {
+                    setRetryForStatus(request.status);
                     error = request.status === 0
                         ? "No HTTP response (check network or TLS)"
                         : "Could not fetch weather (HTTP " + request.status + ")";
@@ -94,7 +117,9 @@ QtObject {
                     lastLocationKey = locationKey;
                     hasData = true;
                     lastSuccessMs = Date.now();
+                    setRetryForStatus(200);
                 } catch (err) {
+                    setRetryForStatus(0);
                     error = "Weather response error: " + err.message;
                     console.warn("Glance Weather: " + error);
                 }
@@ -103,6 +128,7 @@ QtObject {
                 if (token !== generation) return;
                 currentRequest = null;
                 busy = false;
+                setRetryForStatus(0);
                 error = "Network error while fetching weather";
                 console.warn("Glance Weather: " + error);
             };
