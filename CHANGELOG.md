@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased 1.0.3-dev.2] — Location search timeout and request cleanup
+
+### Reliability
+- Give location searches a separate 15-second deadline so a stalled geocoding request cannot leave the configuration dialog busy indefinitely.
+- Abort obsolete requests and ignore callbacks from a cancelled or replaced search, including when the settings page is closed.
+- Keep search UI and weather refreshing independent; preserve existing settings and visual layout.
+- Add simulated-request regression tests for success, timeout, network failure, malformed responses, repeated Enter, and page teardown.
+
+**Status:** Unreleased; local/CI verification precedes real Plasma testing.
+
 ## [Unreleased 1.0.3-dev.1] — Partial forecast response handling
 
 ### Reliability

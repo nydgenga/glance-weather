@@ -1,37 +1,32 @@
-# Glance Weather 1.0.2 — Release verification
+# Glance Weather 1.0.3 — Development checklist
 
-**Release decision:** Maintainer approved shipping 1.0.2 after testing the tooltips on Bazzite and Nobara. Stable 1.0.1 was intentionally skipped; both 1.0.1 development candidates remain unreleased.
+**State:** 1.0.3-dev.2 is an unreleased development build. Public 1.0.2 remains stable.
 
-## Confirmed automated verification
+## Completed automated checks
 
-- [x] Weather, lunar-phase, stress, layout, release, refresh, and timestamp test suites pass
-- [x] No additional HTTP requests or higher forecast refresh frequency for tooltips
-- [x] Plugin ID is unchanged; new installations ship without a preset city or coordinates
-- [x] 0BSD software license, Open-Meteo attribution, and example screenshot checked
-- [x] Reproducible `.plasmoid` and source archives and SHA-256 manifest verified
+- [x] Existing parser, layout, stress, refresh and package checks
+- [x] Partial hourly response regression tests (dev.1)
+- [x] Location search request lifecycle tests (dev.2)
+- [x] Deterministic archives, ZIP integrity, SHA-256 checksums
+- [ ] GitHub Actions run on the latest dev.2 commit
 
-## Manual tests reported by maintainer
+## Desktop verification still required
 
-- [x] Bazzite: widget layout and forecast operation
-- [x] Nobara: widget layout and forecast operation
-- [x] Automatic recovery after sleep on Bazzite and Nobara, using 1.0.1-rc.2
-- [x] Network-disconnection and automatic reconnection test on Nobara, using 1.0.1-rc.2
-- [x] Weather-data/fetch-time tooltip in 1.0.2 candidate
-- [x] Seven-day high/low-hour tooltip in 1.0.2 candidate
-- [x] Simplified tooltip text accepted and tested on Bazzite and Nobara
+- [x] User reports 1.0.3-dev.1 installed and displays normally
+- [ ] 1.0.3-dev.2 installs/upgrades without losing location/units
+- [ ] City/postal-code search returns matching places and selection works
+- [ ] No-result and offline searches end with a useful message; Search remains usable
+- [ ] Two searches submitted in succession do not display outdated results
+- [ ] Search timeout and cleanup remain functional if the service stalls
+- [ ] Weather presentation, refresh and tooltips unchanged
+- [ ] Nobara regression check if practical
 
-Tests reported as successful do not imply every edge case or device was tested.
+## Future development (not implemented in dev.2)
 
-## GitHub publication
+- Smarter API retry behavior for rate limits and server errors
+- Packaging allowlist and small CI refinements
+- Quieter error diagnostics
 
-- [ ] Squash-merge the finalized 1.0.2 changes from PR #4 into `main`
-- [ ] Create the **1.0.2** tag on the merged `main` commit (no `v` prefix)
-- [ ] Publish a GitHub Release named **Glance Weather 1.0.2**
-- [ ] Attach `glance-weather-1.0.2.plasmoid`, `glance-weather-1.0.2-source.zip`, and `glance-weather-1.0.2-sha256.txt`
-- [ ] Verify published downloads and checksums
+## Release policy
 
-The source, binaries, and hashes must match the same finalized commit. If the publication is done outside this workspace, check these items after publishing.
-
-## Implementation notes
-
-A one-minute wall-clock watchdog checks for overdue refreshes after resume, while unsuccessful forecast attempts normally retry approximately every two minutes. Hover-only forecast calculations reuse existing Open-Meteo hourly temperatures. The warmest/coolest hours are estimates rather than exact extrema times of the separate daily aggregates.
+Do not publish or merge until the maintainer has tested and approved the intended changes. No accessibility features or additional settings have been added. Published version 1.0.2 remains unaffected.
