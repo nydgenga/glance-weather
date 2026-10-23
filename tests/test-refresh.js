@@ -46,7 +46,8 @@ assert.match(main, /function onRequestStarted\(\) \{ requestTimeout\.restart\(\)
 assert.match(main, /id: requestTimeout/);
 // Generic status alone is insufficient to diagnose failures after waking.
 assert.match(main, /QQC2\.ToolTip\.text: weatherService\.error\.length > 0/);
-assert.match(svc, /console\.warn\("Glance Weather: " \+ error\)/);
+assert.match(svc, /console\.warn\("Glance Weather: " \+ message\)/);
+assert.match(svc, /function reportFailure\(message\)/);
 assert.match(svc, /No HTTP response \(check network or TLS\)/);
 assert.match(main, /acceptedButtons: Qt\.NoButton/);
 // Humidity remains a droplet; hourly precipitation gets a distinguishable umbrella.

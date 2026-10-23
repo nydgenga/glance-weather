@@ -26,7 +26,7 @@ const source=fs.readFileSync('package/contents/ui/WeatherService.qml','utf8');
 assert.match(main,/weatherService\.error\.length > 0,\s*weatherService\.retryIntervalMs\)\)/);
 assert.match(main,/onClicked: root\.refreshWeather\(\)/);
 assert.match(main,/interval: 60000; repeat: true; running: root\.validLocation; onTriggered: root\.refreshIfDue\(\)/);
-const functions=['setRetryForStatus','cancelDueToTimeout','refresh'].map(name=>{
+const functions=['reportFailure','setRetryForStatus','cancelDueToTimeout','refresh'].map(name=>{
     const found=source.match(new RegExp('^    function '+name+'\\([^\\n]*?\\) \\{[\\s\\S]*?^    \\}','m'));
     assert.ok(found,name);
     return found[0];
@@ -49,15 +49,17 @@ function makeTest() {
     const s={busy:false,hasData:false,error:'',data:{},lastLocationKey:'',
         lastRequestedLocationKey:'',lastAttemptMs:0,lastSuccessMs:0,
         generation:0,currentRequest:null,serverFailureCount:0,
-        retryIntervalMs:2*minute,requestStarted(){}};
+        retryIntervalMs:2*minute,requestStarted(){},
+        lastWarnedError:'',lastWarnedAtMs:0};
+    const logs=[];
     const scope={XMLHttpRequest:XHR,RefreshPolicy:policy,
         Weather:{makeForecast:()=>({ok:true})},Date:{now:()=>time},
-        encodeURIComponent,isFinite,Math,console:{warn(){}}};
+        encodeURIComponent,isFinite,Math,console:{warn:x=>logs.push(x)}};
     for(const key of Object.keys(s))
         Object.defineProperty(scope,key,{get:()=>s[key],set:value=>{s[key]=value;}});
     const ctx=vm.createContext(scope);
     vm.runInContext(functions,ctx);
-    return {requests,s,refresh:(lat=40)=>ctx.refresh(lat,-73,'fahrenheit','mph'),
+    return {requests,s,logs,refresh:(lat=40)=>ctx.refresh(lat,-73,'fahrenheit','mph'),
         timeout:()=>ctx.cancelDueToTimeout(),advance:ms=>{time+=ms;}};
 }
 {
@@ -99,4 +101,36 @@ function makeTest() {
     assert.equal(x.s.hasData,true);
     assert.equal(x.s.retryIntervalMs,2*minute);
 }
-console.log('Provider HTTP backoff, offline recovery, manual refresh and timeout passed');
+// A request may issue both DONE(0) and onerror; only the first callback
+// should report an error. Suppress identical warnings during long outages,
+// but preserve user-facing status and report changes, success or new towns.
+{
+    const x=makeTest();
+    x.refresh(); x.requests[0].respond(0); x.requests[0].fail();
+    assert.equal(x.logs.length,1);
+    assert.match(x.s.error,/No HTTP response/);
+    x.refresh(); x.requests[1].respond(0);
+    assert.equal(x.logs.length,1);
+    x.advance(30*minute);
+    x.refresh(); x.requests[2].respond(0);
+    assert.equal(x.logs.length,2);
+    x.refresh(); x.requests[3].respond(503);
+    assert.equal(x.logs.length,3);
+    x.refresh(); x.requests[4].respond(200,'{}');
+    x.refresh(); x.requests[5].respond(503);
+    assert.equal(x.logs.length,4);
+    x.refresh(41); x.requests[6].respond(503);
+    assert.equal(x.logs.length,5);
+    x.refresh(); const old=x.requests[7]; x.refresh(); old.fail();
+    assert.equal(x.logs.length,5);
+    assert.equal(x.s.busy,true);
+    x.requests[8].respond(200,'{}');
+}
+{
+    const x=makeTest();
+    x.refresh(); x.requests[0].respond(400); x.requests[0].fail();
+    assert.equal(x.logs.length,0);
+    x.requests[1].respond(200,'{}');
+    assert.equal(x.s.error,'');
+}
+console.log('Provider retries, network recovery, timeout and scoped diagnostics passed');

@@ -4,7 +4,7 @@ A compact desktop weather and astronomy widget for **KDE Plasma 6**, designed to
 
 ![Glance Weather showing the current weather, six-hour outlook, seven-day forecast, and Sun/Moon times for Dallas, Texas](screenshots/glance-weather.png)
 
-**Published stable version:** 1.0.2 (tested on Bazzite and Nobara with KDE Plasma 6). **This branch:** 1.0.3-dev.3, an unreleased reliability test build. The 1.0.3 changes still require testing in KDE Plasma.
+**Published stable version:** 1.0.2 (tested on Bazzite and Nobara with KDE Plasma 6). **This branch:** 1.0.3-dev.4, an unreleased reliability test build. The first three improvements were tested on Bazzite and Nobara; the dev.4 packaging and logging adjustments still need desktop verification.
 
 ## Features
 
@@ -28,7 +28,9 @@ Both tooltips use existing forecast data without additional API requests or more
 - Preserve valid current and seven-day forecasts if optional hourly API data is incomplete. Unavailable hours show placeholders rather than invalidating the entire response.
 - Time out stalled location searches after 15 seconds, cleanly abort cancelled searches, and ignore outdated responses.
 - Back off repeated HTTP 429 rate-limit and 5xx provider failures (up to 30 minutes); keep rapid network-recovery retries, manual refresh, and the 30-minute normal refresh schedule.
-- Add automated regression checks in GitHub Actions. These checks do not change the widget's forecast API usage.
+- Whitelist the release package and source archive contents so unrelated local files cannot accidentally ship.
+- Suppress duplicate network callbacks and excessive identical journal warnings during extended outages while retaining the current error in the widget.
+- Run automated regression checks in GitHub Actions and attach the resulting packages for development testing. These changes do not alter forecast API usage.
 
 ## Requirements
 
@@ -40,16 +42,16 @@ Tested on **Bazzite** and **Nobara** Linux. The recovery fixes passed suspend/re
 
 ## Install and upgrade
 
-For the 1.0.3 development candidate, download `glance-weather-1.0.3-dev.3.plasmoid`, open a terminal in the download directory, and run:
+For the 1.0.3 development candidate, download `glance-weather-1.0.3-dev.4.plasmoid`, open a terminal in the download directory, and run:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --install ./glance-weather-1.0.3-dev.3.plasmoid
+kpackagetool6 --type Plasma/Applet --install ./glance-weather-1.0.3-dev.4.plasmoid
 ```
 
 To upgrade an existing Glance Weather installation, keeping saved settings:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-1.0.3-dev.3.plasmoid
+kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-1.0.3-dev.4.plasmoid
 systemctl --user restart plasma-plasmashell.service
 ```
 
@@ -104,7 +106,7 @@ node tests/test-timestamps.js
 python3 scripts/package.py
 ```
 
-The packaging script produces deterministic `.plasmoid` and source `.zip` archives in `dist/`. See [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) for release verification and [CHANGELOG.md](CHANGELOG.md) for release history.
+The packaging script builds deterministic allowlisted `.plasmoid` and source `.zip` archives in `dist/`; new release files must be explicitly registered in `scripts/package.py`. See [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) for release verification and [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## License and credits
 

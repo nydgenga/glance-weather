@@ -30,6 +30,20 @@ QtObject {
     property int serverFailureCount: 0
     property int retryIntervalMs: RefreshPolicy.RETRY_INTERVAL_MS
     property string lastRequestedLocationKey: ""
+    // Avoid filling the user journal with identical failures during long outages.
+    property string lastWarnedError: ""
+    property double lastWarnedAtMs: 0
+
+    function reportFailure(message) {
+        error = message;
+        var now = Date.now();
+        if (lastWarnedError !== message || now - lastWarnedAtMs >= 30 * 60 * 1000
+            || now < lastWarnedAtMs) {
+            console.warn("Glance Weather: " + message);
+            lastWarnedError = message;
+            lastWarnedAtMs = now;
+        }
+    }
 
     function setRetryForStatus(status) {
         if (status === 429 || (status >= 500 && status < 600)) {
@@ -50,8 +64,7 @@ QtObject {
         currentRequest = null;
         busy = false;
         setRetryForStatus(0);
-        error = "Weather request timed out";
-        console.warn("Glance Weather: " + error);
+        reportFailure("Weather request timed out");
     }
 
     function refresh(latitude, longitude, temperatureUnit, windUnit) {
@@ -68,6 +81,8 @@ QtObject {
         if (locationKey !== lastRequestedLocationKey) {
             setRetryForStatus(0);
             lastRequestedLocationKey = locationKey;
+            // Errors from an earlier city should never suppress diagnostics here.
+            lastWarnedError = "";
         }
         // Prevent weather for a previous city from appearing under the new city's name.
         if (locationKey !== lastLocationKey) hasData = false;
@@ -93,7 +108,8 @@ QtObject {
             lastAttemptMs = Date.now();
             requestStarted(); // resets the timeout for this individual HTTP request
             request.onreadystatechange = function() {
-                if (token !== generation || request.readyState !== XMLHttpRequest.DONE) return;
+                if (token !== generation || request !== currentRequest ||
+                    request.readyState !== XMLHttpRequest.DONE) return;
                 if (request.status === 400 && includeMoon) {
                     // Compatibility with deployments that lack the newer moon fields.
                     beginRequest(false);
@@ -103,10 +119,9 @@ QtObject {
                 busy = false;
                 if (request.status !== 200) {
                     setRetryForStatus(request.status);
-                    error = request.status === 0
+                    reportFailure(request.status === 0
                         ? "No HTTP response (check network or TLS)"
-                        : "Could not fetch weather (HTTP " + request.status + ")";
-                    console.warn("Glance Weather: " + error);
+                        : "Could not fetch weather (HTTP " + request.status + ")");
                     return;
                 }
                 try {
@@ -117,20 +132,19 @@ QtObject {
                     lastLocationKey = locationKey;
                     hasData = true;
                     lastSuccessMs = Date.now();
+                    lastWarnedError = "";
                     setRetryForStatus(200);
                 } catch (err) {
                     setRetryForStatus(0);
-                    error = "Weather response error: " + err.message;
-                    console.warn("Glance Weather: " + error);
+                    reportFailure("Weather response error: " + err.message);
                 }
             };
             request.onerror = function() {
-                if (token !== generation) return;
+                if (token !== generation || request !== currentRequest) return;
                 currentRequest = null;
                 busy = false;
                 setRetryForStatus(0);
-                error = "Network error while fetching weather";
-                console.warn("Glance Weather: " + error);
+                reportFailure("Network error while fetching weather");
             };
             request.open("GET", "https://api.open-meteo.com/v1/forecast?" + params.join("&"));
             request.send();

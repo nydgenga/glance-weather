@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased 1.0.3-dev.4] — Safer archives and quieter diagnostics
+
+### Maintenance
+- Package only explicitly approved runtime and source files to avoid accidentally shipping local configuration, secrets or temporary files. Fail packaging if a required release file is missing.
+- Handle duplicate failed-request callbacks once and avoid logging the same error repeatedly during a prolonged outage; preserve visible errors and log new failures or periodic reminders.
+- Add automated package-content, deterministic-archive and diagnostic regression tests.
+
+**Status:** Development only. Not yet desktop-tested as dev.4.
+
 ## [Unreleased 1.0.3-dev.3] — Error-aware weather API retries
 
 ### Reliability
@@ -8,7 +17,7 @@
 - Reset backoff after a successful weather fetch, a different selected location or a network failure. Continue recovering on sleep/wake using the wall-clock watchdog.
 - Add unit and simulated-request regression tests for retry scheduling, timeout and recovery behavior.
 
-**Status:** Unreleased; desktop testing of dev.3 remains outstanding.
+**Status:** Unreleased; maintainer reported routine weather use successful on both Bazzite and Nobara. HTTP failure cases were simulated in tests.
 
 
 ## [Unreleased 1.0.3-dev.2] — Location search timeout and request cleanup
