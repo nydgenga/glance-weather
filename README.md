@@ -4,7 +4,7 @@ A compact desktop weather and astronomy widget for **KDE Plasma 6**, designed to
 
 ![Glance Weather showing the current weather, six-hour outlook, seven-day forecast, and Sun/Moon times for Dallas, Texas](screenshots/glance-weather.png)
 
-**Published stable version:** 1.0.2 (tested on Bazzite and Nobara with KDE Plasma 6). **This branch:** 1.0.3-dev.4, an unreleased reliability test build. The first three improvements were tested on Bazzite and Nobara; the dev.4 packaging and logging adjustments still need desktop verification.
+**Stable release:** 1.0.3. The maintenance candidates were tested in KDE Plasma 6 on both Bazzite and Nobara. The published 1.0.2 remains available for rollback.
 
 ## Features
 
@@ -23,7 +23,7 @@ A compact desktop weather and astronomy widget for **KDE Plasma 6**, designed to
 
 Both tooltips use existing forecast data without additional API requests or more frequent refreshes.
 
-## Under development for 1.0.3
+## Reliability and maintenance in 1.0.3
 
 - Preserve valid current and seven-day forecasts if optional hourly API data is incomplete. Unavailable hours show placeholders rather than invalidating the entire response.
 - Time out stalled location searches after 15 seconds, cleanly abort cancelled searches, and ignore outdated responses.
@@ -42,16 +42,16 @@ Tested on **Bazzite** and **Nobara** Linux. The recovery fixes passed suspend/re
 
 ## Install and upgrade
 
-For the 1.0.3 development candidate, download `glance-weather-1.0.3-dev.4.plasmoid`, open a terminal in the download directory, and run:
+Download `glance-weather-1.0.3.plasmoid`, open a terminal in the download directory, and run:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --install ./glance-weather-1.0.3-dev.4.plasmoid
+kpackagetool6 --type Plasma/Applet --install ./glance-weather-1.0.3.plasmoid
 ```
 
 To upgrade an existing Glance Weather installation, keeping saved settings:
 
 ```bash
-kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-1.0.3-dev.4.plasmoid
+kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-1.0.3.plasmoid
 systemctl --user restart plasma-plasmashell.service
 ```
 
@@ -97,13 +97,11 @@ Moon phases are derived from Open-Meteo's daily numerical phase observations sam
 Pure JavaScript parsing and QML UI; no binary dependencies beyond the normal Plasma runtime. From the repository root:
 
 ```bash
-node tests/test-weather.js
-node tests/test-stress.js
-node tests/test-layout.js
-node tests/test-release.js
-node tests/test-refresh.js
-node tests/test-timestamps.js
+for test in tests/test-*.js; do node "$test"; done
+node --check package/contents/ui/Weather.js
+node --check package/contents/ui/RefreshPolicy.js
 python3 scripts/package.py
+(cd dist && sha256sum -c glance-weather-1.0.3-sha256.txt)
 ```
 
 The packaging script builds deterministic allowlisted `.plasmoid` and source `.zip` archives in `dist/`; new release files must be explicitly registered in `scripts/package.py`. See [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) for release verification and [CHANGELOG.md](CHANGELOG.md) for release history.

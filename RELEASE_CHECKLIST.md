@@ -1,39 +1,30 @@
-# Glance Weather 1.0.3 — Development checklist
+# Glance Weather 1.0.3 — Release checklist
 
-**State:** 1.0.3-dev.4 is an unreleased development build. Public 1.0.2 remains stable.
+**Candidate:** Stable 1.0.3. The public 1.0.2 package is the rollback baseline. The maintainers have authorized finalizing 1.0.3 after testing four unreleased development builds.
 
-## Completed automated checks
+## Verified before publication
 
-- [x] Existing parser, layout, stress, refresh and package checks
-- [x] Partial hourly response regression tests (dev.1)
-- [x] Location search request lifecycle tests (dev.2)
-- [x] Error-aware API backoff tests, including recovery and reset cases (dev.3)
-- [x] Deterministic archives, ZIP integrity, SHA-256 checksums
-- [ ] GitHub Actions run on the latest dev.4 commit and artifact verified
+- [x] Plugin ID `com.github.nydgenga.glanceweather` and configuration keys unchanged; normal upgrades retain settings
+- [x] All ten Node.js regression suites pass, including partial weather responses, geocoding lifecycle, HTTP backoff and archive-content checks
+- [x] Pure JavaScript syntax checks pass; reproducible `.plasmoid` and source ZIP build succeeds; manifest and ZIP integrity check pass
+- [x] Developer run of 1.0.3-dev.4 tested on **Bazzite** and **Nobara** by maintainer without apparent issues; normal location and weather behavior preserved
+- [x] HTTP 429/5xx and callback failures validated with simulated responses, not forced against Open-Meteo production
+- [x] Generic location placeholder, Open-Meteo attribution, 0BSD license and existing screenshot retained
+- [x] No runtime UI or normal weather refresh change, no additional installed dependencies
 
-## Desktop verification still required
+## Publish through GitHub
 
-- [ ] 1.0.3-dev.4 upgrades successfully without changing layout or settings
-- [ ] Normal weather refresh and manual Refresh still work
-- [ ] If practical, disconnect and restore the network to confirm fast recovery
-- [ ] Rate limiting and 5xx backoff tested in automated request harness (no need to intentionally trigger live API errors)
+- [ ] GitHub Actions checks complete successfully on the exact final 1.0.3 commit
+- [ ] Squash-merge development PR #7 into `main` after the preceding check
+- [ ] Create Git tag **`1.0.3`** on the merged commit (do not use a `v` prefix)
+- [ ] Publish GitHub Release named **Glance Weather 1.0.3**, with release notes describing reliability and maintenance fixes
+- [ ] Attach `glance-weather-1.0.3.plasmoid`, `glance-weather-1.0.3-source.zip`, and `glance-weather-1.0.3-sha256.txt`
+- [ ] Verify public asset checksums against the final build
 
-- [x] User reports 1.0.3-dev.1 installed and displays normally
-- [ ] 1.0.3-dev.4 installs/upgrades without losing location/units
-- [x] City/postal-code search returns matching places and selection works
-- [ ] No-result and offline searches end with a useful message; Search remains usable
-- [ ] Two searches submitted in succession do not display outdated results
-- [ ] Search timeout and cleanup remain functional if the service stalls
-- [ ] Weather presentation, refresh and tooltips unchanged
-- [ ] Nobara regression check if practical
+## Install and rollback
 
-## dev.4 packaging and logging checks
+Upgrade: `kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-1.0.3.plasmoid`
+Restart Plasma if its cached QML does not reload: `systemctl --user restart plasma-plasmashell.service`.
+For rollback, use the preserved stable `1.0.2` `.plasmoid` with the same `--upgrade` command; there are no data-format migrations in 1.0.3.
 
-- [x] Source/plugin archives use an explicit file allowlist and reject missing required files
-- [x] Regression test confirms stray local files do not enter release archives
-- [x] Diagnostic tests distinguish repeated failures from new failure types
-- [ ] dev.4 upgrade and weather behavior checked on Bazzite and/or Nobara
-
-## Release policy
-
-Do not publish or merge until the maintainer has tested and approved the intended changes. No accessibility features or additional settings have been added. Published version 1.0.2 remains unaffected.
+The first published 1.0.3 package shares the tested development build's runtime code; changing the metadata version and release documentation does not itself provide additional desktop-test evidence.

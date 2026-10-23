@@ -1,47 +1,19 @@
 # Changelog
 
-## [Unreleased 1.0.3-dev.4] — Safer archives and quieter diagnostics
+## [1.0.3] — Reliability and maintenance (2026-10-23)
 
-### Maintenance
-- Package only explicitly approved runtime and source files to avoid accidentally shipping local configuration, secrets or temporary files. Fail packaging if a required release file is missing.
-- Handle duplicate failed-request callbacks once and avoid logging the same error repeatedly during a prolonged outage; preserve visible errors and log new failures or periodic reminders.
-- Add automated package-content, deterministic-archive and diagnostic regression tests.
+### Reliability fixes
+- Preserve usable current weather and seven-day forecasts when optional Open-Meteo hourly arrays are missing, incomplete or malformed. Display unavailable hourly values rather than rejecting the full response; still reject unusable core responses.
+- Give geocoding searches a 15-second timeout, abort replaced or cancelled requests and ignore late responses so stale results cannot override a newer search.
+- Back off repeated HTTP 429 rate limits (10 → 20 → 30 minutes) and HTTP 5xx server errors (4 → 8 → 16 → 30 minutes). Keep ordinary network-error recovery near two minutes, manual refresh available, and the 30-minute healthy polling interval.
+- Deduplicate terminal network-error callbacks and limit repetitive journal warnings during an extended outage, while keeping informative error messages visible in the widget.
 
-**Status:** Development only. Not yet desktop-tested as dev.4.
+### Maintenance and development
+- Restrict the installable plasmoid and source archive to explicitly approved files and fail packaging when required files are missing.
+- Extend automated tests to cover incomplete responses, search cancellation and timeout, API backoff, diagnostics, and reproducible archive contents.
+- Add GitHub Actions pull-request checks and downloadable, short-lived development artifacts. No additional runtime dependencies or weather API requests were introduced.
 
-## [Unreleased 1.0.3-dev.3] — Error-aware weather API retries
-
-### Reliability
-- Back off repeated HTTP 429 responses starting at 10 minutes and 5xx responses starting at 4 minutes; exponential intervals are capped at 30 minutes.
-- Preserve the two-minute retry after network errors, timeouts and ordinary failures, as well as manual refresh and the 30-minute healthy refresh cadence.
-- Reset backoff after a successful weather fetch, a different selected location or a network failure. Continue recovering on sleep/wake using the wall-clock watchdog.
-- Add unit and simulated-request regression tests for retry scheduling, timeout and recovery behavior.
-
-**Status:** Unreleased; maintainer reported routine weather use successful on both Bazzite and Nobara. HTTP failure cases were simulated in tests.
-
-
-## [Unreleased 1.0.3-dev.2] — Location search timeout and request cleanup
-
-### Reliability
-- Give location searches a separate 15-second deadline so a stalled geocoding request cannot leave the configuration dialog busy indefinitely.
-- Abort obsolete requests and ignore callbacks from a cancelled or replaced search, including when the settings page is closed.
-- Keep search UI and weather refreshing independent; preserve existing settings and visual layout.
-- Add simulated-request regression tests for success, timeout, network failure, malformed responses, repeated Enter, and page teardown.
-
-**Status:** Unreleased; local/CI verification precedes real Plasma testing.
-
-## [Unreleased 1.0.3-dev.1] — Partial forecast response handling
-
-### Reliability
-- Keep valid current conditions and daily forecasts when optional hourly arrays are missing or truncated; show unavailable hourly values instead of discarding the full response.
-- Skip malformed hourly timestamps. Continue deriving daily high/low times only from valid hourly temperature samples.
-- Add regression tests for absent, malformed, and partial hourly fields; preserve the existing requirement for usable core weather data.
-
-### Development infrastructure
-- Trial GitHub Actions checks for Node tests, JavaScript syntax, reproducible package build, and checksum verification. These CI checks supplement, not replace, Bazzite/Nobara desktop testing.
-
-**Status:** Development-only. No 1.0.3 stable release or Plasma runtime test has occurred yet.
-
+**Verification:** Ten automated suites, JavaScript checks, SHA-256 manifests and deterministic archive checks passed. The maintainer reported normal operation of the final development build on both Bazzite and Nobara. Deliberate live rate-limit/server outages were not induced; those cases were tested with simulated responses. Development builds `1.0.3-dev.1` through `1.0.3-dev.4` were not published as stable releases.
 
 ## [1.0.2] — Maintenance and forecast tooltips (2026-10-22)
 
