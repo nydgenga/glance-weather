@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.0.3] — Reliability and maintenance (2026-10-23)
+
+### Reliability fixes
+- Preserve usable current weather and seven-day forecasts when optional Open-Meteo hourly arrays are missing, incomplete or malformed. Display unavailable hourly values rather than rejecting the full response; still reject unusable core responses.
+- Give geocoding searches a 15-second timeout, abort replaced or cancelled requests and ignore late responses so stale results cannot override a newer search.
+- Back off repeated HTTP 429 rate limits (10 → 20 → 30 minutes) and HTTP 5xx server errors (4 → 8 → 16 → 30 minutes). Keep ordinary network-error recovery near two minutes, manual refresh available, and the 30-minute healthy polling interval.
+- Deduplicate terminal network-error callbacks and limit repetitive journal warnings during an extended outage, while keeping informative error messages visible in the widget.
+
+### Maintenance and development
+- Restrict the installable plasmoid and source archive to explicitly approved files and fail packaging when required files are missing.
+- Extend automated tests to cover incomplete responses, search cancellation and timeout, API backoff, diagnostics, and reproducible archive contents.
+- Add GitHub Actions pull-request checks and downloadable, short-lived development artifacts. No additional runtime dependencies or weather API requests were introduced.
+
+**Verification:** Ten automated suites, JavaScript checks, SHA-256 manifests and deterministic archive checks passed. The maintainer reported normal operation of the final development build on both Bazzite and Nobara. Deliberate live rate-limit/server outages were not induced; those cases were tested with simulated responses. Development builds `1.0.3-dev.1` through `1.0.3-dev.4` were not published as stable releases.
+
 ## [1.0.2] — Maintenance and forecast tooltips (2026-10-22)
 
 ### Recovery and reliability (validated during 1.0.1 development)

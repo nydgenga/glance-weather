@@ -1,37 +1,30 @@
-# Glance Weather 1.0.2 — Release verification
+# Glance Weather 1.0.3 — Release checklist
 
-**Release decision:** Maintainer approved shipping 1.0.2 after testing the tooltips on Bazzite and Nobara. Stable 1.0.1 was intentionally skipped; both 1.0.1 development candidates remain unreleased.
+**Candidate:** Stable 1.0.3. The public 1.0.2 package is the rollback baseline. The maintainers have authorized finalizing 1.0.3 after testing four unreleased development builds.
 
-## Confirmed automated verification
+## Verified before publication
 
-- [x] Weather, lunar-phase, stress, layout, release, refresh, and timestamp test suites pass
-- [x] No additional HTTP requests or higher forecast refresh frequency for tooltips
-- [x] Plugin ID is unchanged; new installations ship without a preset city or coordinates
-- [x] 0BSD software license, Open-Meteo attribution, and example screenshot checked
-- [x] Reproducible `.plasmoid` and source archives and SHA-256 manifest verified
+- [x] Plugin ID `com.github.nydgenga.glanceweather` and configuration keys unchanged; normal upgrades retain settings
+- [x] All ten Node.js regression suites pass, including partial weather responses, geocoding lifecycle, HTTP backoff and archive-content checks
+- [x] Pure JavaScript syntax checks pass; reproducible `.plasmoid` and source ZIP build succeeds; manifest and ZIP integrity check pass
+- [x] Developer run of 1.0.3-dev.4 tested on **Bazzite** and **Nobara** by maintainer without apparent issues; normal location and weather behavior preserved
+- [x] HTTP 429/5xx and callback failures validated with simulated responses, not forced against Open-Meteo production
+- [x] Generic location placeholder, Open-Meteo attribution, 0BSD license and existing screenshot retained
+- [x] No runtime UI or normal weather refresh change, no additional installed dependencies
 
-## Manual tests reported by maintainer
+## Publish through GitHub
 
-- [x] Bazzite: widget layout and forecast operation
-- [x] Nobara: widget layout and forecast operation
-- [x] Automatic recovery after sleep on Bazzite and Nobara, using 1.0.1-rc.2
-- [x] Network-disconnection and automatic reconnection test on Nobara, using 1.0.1-rc.2
-- [x] Weather-data/fetch-time tooltip in 1.0.2 candidate
-- [x] Seven-day high/low-hour tooltip in 1.0.2 candidate
-- [x] Simplified tooltip text accepted and tested on Bazzite and Nobara
+- [ ] GitHub Actions checks complete successfully on the exact final 1.0.3 commit
+- [ ] Squash-merge development PR #7 into `main` after the preceding check
+- [ ] Create Git tag **`1.0.3`** on the merged commit (do not use a `v` prefix)
+- [ ] Publish GitHub Release named **Glance Weather 1.0.3**, with release notes describing reliability and maintenance fixes
+- [ ] Attach `glance-weather-1.0.3.plasmoid`, `glance-weather-1.0.3-source.zip`, and `glance-weather-1.0.3-sha256.txt`
+- [ ] Verify public asset checksums against the final build
 
-Tests reported as successful do not imply every edge case or device was tested.
+## Install and rollback
 
-## GitHub publication
+Upgrade: `kpackagetool6 --type Plasma/Applet --upgrade ./glance-weather-1.0.3.plasmoid`
+Restart Plasma if its cached QML does not reload: `systemctl --user restart plasma-plasmashell.service`.
+For rollback, use the preserved stable `1.0.2` `.plasmoid` with the same `--upgrade` command; there are no data-format migrations in 1.0.3.
 
-- [ ] Squash-merge the finalized 1.0.2 changes from PR #4 into `main`
-- [ ] Create the **1.0.2** tag on the merged `main` commit (no `v` prefix)
-- [ ] Publish a GitHub Release named **Glance Weather 1.0.2**
-- [ ] Attach `glance-weather-1.0.2.plasmoid`, `glance-weather-1.0.2-source.zip`, and `glance-weather-1.0.2-sha256.txt`
-- [ ] Verify published downloads and checksums
-
-The source, binaries, and hashes must match the same finalized commit. If the publication is done outside this workspace, check these items after publishing.
-
-## Implementation notes
-
-A one-minute wall-clock watchdog checks for overdue refreshes after resume, while unsuccessful forecast attempts normally retry approximately every two minutes. Hover-only forecast calculations reuse existing Open-Meteo hourly temperatures. The warmest/coolest hours are estimates rather than exact extrema times of the separate daily aggregates.
+The first published 1.0.3 package shares the tested development build's runtime code; changing the metadata version and release documentation does not itself provide additional desktop-test evidence.

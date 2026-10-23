@@ -18,6 +18,16 @@ Kirigami.FormLayout {
     property string searchError: ""
     property bool searching: false
     property int searchGeneration: 0
+    property var activeSearchRequest: null
+
+    // Geocoding requests have their own deadline, separate from weather refresh.
+    Timer {
+        id: searchTimeout
+        interval: 15000
+        repeat: false
+        onTriggered: page.cancelSearch(i18n("Location search timed out. Try again."))
+    }
+    Component.onDestruction: page.cancelSearch("")
 
     QQC2.Label {
         Kirigami.FormData.label: i18n("Location")
@@ -90,35 +100,69 @@ Kirigami.FormLayout {
         onActivated: function(index) { page.cfg_windUnit = index === 1 ? "kmh" : "mph"; }
     }
 
+    // Invalidate callbacks before aborting, since abort() can fire completion
+    // and error signals synchronously on some XMLHttpRequest implementations.
+    function cancelSearch(message) {
+        searchGeneration++;
+        var previous = activeSearchRequest;
+        activeSearchRequest = null;
+        searchTimeout.stop();
+        searching = false;
+        if (previous) previous.abort();
+        if (message) searchError = message;
+    }
+
+    function finishSearch(token, request) {
+        if (token !== searchGeneration || request !== activeSearchRequest)
+            return false;
+        activeSearchRequest = null;
+        searchTimeout.stop();
+        searching = false;
+        return true;
+    }
+
     function searchCities() {
         var term = searchField.text.trim();
         if (term.length < 2) return;
-        searchGeneration++;
+        // Pressing Enter can start a second search before the first finishes.
+        // Abort the old search; its late callbacks must not overwrite results.
+        cancelSearch("");
         var token = searchGeneration;
         searching = true;
         locations = [];
         searchError = "";
         var request = new XMLHttpRequest();
+        activeSearchRequest = request;
         request.onreadystatechange = function() {
-            if (request.readyState !== XMLHttpRequest.DONE || token !== searchGeneration) return;
-            page.searching = false;
+            if (request.readyState !== XMLHttpRequest.DONE ||
+                !page.finishSearch(token, request)) return;
             if (request.status !== 200) {
-                page.searchError = i18n("Location search failed (HTTP %1).", request.status);
+                page.searchError = request.status === 0
+                    ? i18n("Could not connect to location search.")
+                    : i18n("Location search failed (HTTP %1).", request.status);
                 return;
             }
             try {
                 var payload = JSON.parse(request.responseText);
-                page.locations = payload.results || [];
+                page.locations = Array.isArray(payload.results) ? payload.results : [];
                 if (!page.locations.length) page.searchError = i18n("No matching places found.");
             } catch (err) {
                 page.searchError = i18n("Could not read location results.");
             }
         };
-        request.onerror = function() { if (token === searchGeneration) {
-            page.searching = false;
+        request.onerror = function() {
+            if (!page.finishSearch(token, request)) return;
             page.searchError = i18n("Could not connect to location search.");
-        }};
-        request.open("GET", "https://geocoding-api.open-meteo.com/v1/search?count=5&language=en&name=" + encodeURIComponent(term));
-        request.send();
+        };
+        // Start the timeout before opening/sending; even a failed synchronous
+        // send must clean up the spinner and leave Search usable again.
+        searchTimeout.restart();
+        try {
+            request.open("GET", "https://geocoding-api.open-meteo.com/v1/search?count=5&language=en&name=" + encodeURIComponent(term));
+            request.send();
+        } catch (err) {
+            if (finishSearch(token, request))
+                searchError = i18n("Could not connect to location search.");
+        }
     }
 }

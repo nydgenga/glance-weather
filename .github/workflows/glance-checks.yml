@@ -1,0 +1,55 @@
+# SPDX-License-Identifier: 0BSD
+name: Glance Weather checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate parser, layout, and recovery
+        run: |
+          set -eu
+          for file in tests/test-*.js; do
+            echo "Running $file"
+            node "$file"
+          done
+          node --check package/contents/ui/Weather.js
+          node --check package/contents/ui/RefreshPolicy.js
+      - name: Verify reproducible package
+        run: |
+          set -eu
+          python3 scripts/package.py --out dist
+          (cd dist && sha256sum -c glance-weather-*-sha256.txt)
+          python3 - <<'PY'
+          import zipfile
+          from pathlib import Path
+          for path in Path("dist").glob("*"):
+              if path.suffix in (".plasmoid", ".zip"):
+                  with zipfile.ZipFile(path) as archive:
+                      bad = archive.testzip()
+                      assert bad is None, (path, bad)
+          PY
+      - name: Attach verified development packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: glance-weather-development-packages
+          path: |
+            dist/*.plasmoid
+            dist/*-source.zip
+            dist/*-sha256.txt
+          if-no-files-found: error
+          retention-days: 7

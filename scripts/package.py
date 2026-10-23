@@ -9,7 +9,52 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = ROOT / 'package'
 FIXED_TIME = (2020, 1, 1, 0, 0, 0)
-SOURCE_EXCLUDE = {'dist', '.git', '__pycache__'}
+# Exact, reviewable release contents: never include arbitrary local notes,
+# credentials, downloaded files, caches or untracked scratch files.
+PLUGIN_FILES = (
+    'LICENSE',
+    'metadata.json',
+    'contents/config/config.qml',
+    'contents/config/main.xml',
+    'contents/ui/RefreshPolicy.js',
+    'contents/ui/Weather.js',
+    'contents/ui/WeatherService.qml',
+    'contents/ui/configGeneral.qml',
+    'contents/ui/main.qml',
+)
+SOURCE_FILES = (
+    '.github/workflows/glance-checks.yml',
+    'CHANGELOG.md',
+    'LICENSE',
+    'README.md',
+    'RELEASE_CHECKLIST.md',
+    'screenshots/glance-weather.png',
+    'scripts/package.py',
+    'tests/test-api-backoff.js',
+    'tests/test-layout.js',
+    'tests/test-location-search.js',
+    'tests/test-package.js',
+    'tests/test-partial-response.js',
+    'tests/test-refresh.js',
+    'tests/test-release.js',
+    'tests/test-stress.js',
+    'tests/test-timestamps.js',
+    'tests/test-weather.js',
+) + tuple('package/' + file for file in PLUGIN_FILES)
+
+
+def curated_paths(base: Path, names) -> list[Path]:
+    paths = []
+    for name in names:
+        path = base / name
+        if not path.is_file() or path.is_symlink():
+            raise SystemExit(f'Missing or invalid release file: {name}')
+        if not path.resolve().is_relative_to(base.resolve()):
+            raise SystemExit(f'Release file outside source tree: {name}')
+        paths.append(path)
+    if len(set(paths)) != len(paths):
+        raise SystemExit('Duplicate release file')
+    return paths
 
 
 def pack(archive: Path, paths, base: Path) -> None:
@@ -31,13 +76,11 @@ def main() -> None:
     version = meta['KPlugin']['Version']
     if meta['KPlugin']['Id'] != 'com.github.nydgenga.glanceweather':
         raise SystemExit('Unexpected plugin ID')
-    plugin_files = [p for p in PACKAGE.rglob('*') if p.is_file()]
-    if not any(p.name == 'metadata.json' for p in plugin_files):
-        raise SystemExit('Missing package metadata.json')
+    plugin_files = curated_paths(PACKAGE, PLUGIN_FILES)
     plasmoid = out / f'glance-weather-{version}.plasmoid'
     pack(plasmoid, plugin_files, PACKAGE)
     source = out / f'glance-weather-{version}-source.zip'
-    source_files = [p for p in ROOT.rglob('*') if p.is_file() and not any(s in SOURCE_EXCLUDE for s in p.relative_to(ROOT).parts)]
+    source_files = curated_paths(ROOT, SOURCE_FILES)
     pack(source, source_files, ROOT)
     manifest = out / f'glance-weather-{version}-sha256.txt'
     manifest.write_text(''.join(f'{hashlib.sha256(p.read_bytes()).hexdigest()}  {p.name}\n' for p in (plasmoid, source)))
