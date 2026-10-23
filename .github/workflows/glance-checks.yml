@@ -43,3 +43,13 @@ jobs:
                       bad = archive.testzip()
                       assert bad is None, (path, bad)
           PY
+      - name: Attach verified development packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: glance-weather-development-packages
+          path: |
+            dist/*.plasmoid
+            dist/*-source.zip
+            dist/*-sha256.txt
+          if-no-files-found: error
+          retention-days: 7
